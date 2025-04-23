@@ -1,16 +1,24 @@
 package com.example.gymmanagement.ui.screens.splash
 
-import com.example.gymmanagement.R
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -18,144 +26,207 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.gymmanagement.R
 import com.example.gymmanagement.ui.navigation.AppRoutes
-import androidx.compose.ui.graphics.Color
 import com.example.gymmanagement.ui.theme.Blue
 
 @Composable
-fun HeaderWithLogo() {
+fun WaveBackground(content: @Composable () -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(285.dp)
-            .background(color = Blue) // Use your preferred blue color
-//            .padding(24.dp)
-
+            .height(200.dp)  // Even smaller height
+            .background(
+                color = Blue,
+                shape = RoundedCornerShape(
+                    bottomStart = 35.dp,
+                    bottomEnd = 35.dp
+                )
+            )
     ) {
+        content()
+    }
+}
+
+@Composable
+fun HeaderWithLogo() {
+    WaveBackground {
         Column(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp)
+                .padding(top = 16.dp)
         ) {
-            // Circular Logo
             Image(
                 painter = painterResource(id = R.drawable.gym_logo),
-                contentDescription = "Profile Image",
+                contentDescription = "Gym Logo",
                 modifier = Modifier
-                    .size(120.dp)
-                    .clip(CircleShape) // Makes the image circular
+                    .size(65.dp)
+                    .clip(CircleShape)
                     .border(
-                        width = 3.dp, // Border thickness
-                        color = Color.White, // Border color
-                        shape = CircleShape // Matches the clip shape
+                        width = 2.dp,
+                        color = Color.White,
+                        shape = CircleShape
                     ),
-                contentScale = ContentScale.Crop // Ensures proper image scaling
+                contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Text Column
-                Text(
-                    text = "FITNESS GYM",
-                    style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 24.sp
-                )
-            Spacer(modifier = Modifier.height(17.dp))
-                Text(
-                    text = "Your journey to a healthier life",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontSize = 16.sp,
-                    color = Color.White.copy(alpha = 0.9f)
-                )
-
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "FITNESS GYM",
+                style = MaterialTheme.typography.titleLarge,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+            
+            Spacer(modifier = Modifier.height(4.dp))
+            
+            Text(
+                text = "Your journey to a healthier life starts here",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.White.copy(alpha = 0.9f),
+                fontSize = 13.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
         }
     }
 }
 
+@Composable
+fun ContactInfo(icon: ImageVector, text: String, showDivider: Boolean = true) {
+    Column {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Blue,
+                modifier = Modifier
+                    .size(20.dp)
+                    .padding(end = 8.dp)
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Black.copy(alpha = 0.7f),
+                fontSize = 14.sp
+            )
+        }
+        if (showDivider) {
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+    }
+}
 
 @Composable
 fun ContactUsSection() {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
     ) {
         Text(
-            text = "📞 Contact Us",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            text = "Contact Us",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(bottom = 8.dp),
+            fontSize = 16.sp
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text("Email: contact@fitzone.com")
-        Text("Phone: +123 456 7890")
-        Text("Location: 123 Fit Street, Wellness City")
+        ContactInfo(Icons.Filled.Phone, "+251 90 102 0304")
+        ContactInfo(Icons.Filled.Email, "info@fitnessgym.com")
+        ContactInfo(Icons.Filled.LocationOn, "5 kilo, Addis Ababa, Ethiopia", false)
     }
 }
 
 @Composable
 fun SplashScreen(navController: NavController) {
-    Surface(
+    Box(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-//            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Top
         ) {
-//            Image(
-//                painter = painterResource(id = R.drawable.gym_logo),
-//                contentDescription = "Gym Logo",
-//                modifier = Modifier
-//                    .size(120.dp)
-//                    .clip(CircleShape), // This makes the IMAGE ITSELF circular
-//                contentScale = ContentScale.Crop // Ensures the image fills the circle
-//            )
-//
-//            Spacer(modifier = Modifier.height(24.dp))
-//
-//            Text(
-//                text = "FITNESS GYM",
-//                style = MaterialTheme.typography.headlineLarge,
-//                fontWeight = FontWeight.Bold,
-//                fontSize = 32.sp,
-//                modifier = Modifier.padding(bottom = 8.dp)
-//            )
-//            Text(
-//                text = "Your journey to a healthier life starts here",
-//                style = MaterialTheme.typography.titleMedium,
-//                textAlign = TextAlign.Center,
-//                modifier = Modifier.padding(bottom = 32.dp)
-//            )
             HeaderWithLogo()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            ContactUsSection()
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            Button(
-                onClick = { navController.navigate(AppRoutes.LOGIN) },
-                modifier = Modifier.fillMaxWidth(0.8f)
-            ) {
-                Text("Login")
-            }
-
+            
             Spacer(modifier = Modifier.height(12.dp))
-
-            OutlinedButton(
-                onClick = { navController.navigate(AppRoutes.REGISTER) },
-                modifier = Modifier.fillMaxWidth(0.8f)
+            
+            ContactUsSection()
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Gym Equipment Image
+            Image(
+                painter = painterResource(id = R.drawable.gym_logo),
+                contentDescription = "Gym Equipment",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .height(120.dp),  // Reduced height
+                contentScale = ContentScale.Crop
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Buttons at the bottom
+            Column(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .fillMaxWidth()
             ) {
-                Text("Register")
+                // Login Button
+                Button(
+                    onClick = { navController.navigate(AppRoutes.LOGIN) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Blue,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(4.dp),
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 0.dp
+                    )
+                ) {
+                    Text(
+                        "Login",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                // Register Button - White background with blue border
+                OutlinedButton(
+                    onClick = { navController.navigate(AppRoutes.REGISTER) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .background(Color.White, RoundedCornerShape(4.dp)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Blue,
+                        containerColor = Color.White
+                    ),
+                    border = BorderStroke(1.dp, Blue),
+                    shape = RoundedCornerShape(4.dp)
+                ) {
+                    Text(
+                        "Register",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
         }
     }

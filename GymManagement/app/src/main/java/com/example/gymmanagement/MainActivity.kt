@@ -6,23 +6,23 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.navigation.compose.rememberNavController
-import com.example.gymmanagement.ui.navigation.AppNavHost
-import com.example.gymmanagement.ui.theme.GymManagementAppTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.gymmanagement.ui.navigation.AppNavigation
+import com.example.gymmanagement.ui.theme.GymManagementTheme
+import com.example.gymmanagement.viewmodel.AdminWorkoutViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            GymManagementAppTheme {
+            GymManagementTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val navController = rememberNavController()
-                    AppNavHost(navController = navController)
+                    val workoutViewModel: AdminWorkoutViewModel = viewModel()
+                    AppNavigation(workoutViewModel = workoutViewModel)
                 }
             }
         }

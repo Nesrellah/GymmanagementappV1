@@ -1,21 +1,35 @@
 package com.example.gymmanagement.ui.screens.login
 
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.example.gymmanagement.ui.navigation.AppRoutes
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import com.example.gymmanagement.R
+import com.example.gymmanagement.ui.navigation.AppRoutes
+import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
-import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 
-
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
     var email by remember { mutableStateOf("") }
@@ -23,56 +37,155 @@ fun LoginScreen(navController: NavController) {
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
 
-
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(text = "Login", style = MaterialTheme.typography.headlineMedium)
+        // Back button and Image section
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.gym_logo),
+                contentDescription = "Gym Equipment",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+            
+            // Back button
+            IconButton(
+                onClick = { navController.navigateUp() },
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.White
+                )
+            }
+        }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
+        // Content section
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .padding(top = 24.dp)
+        ) {
+            // Welcome text
+            Text(
+                text = "Welcome Back",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            Text(
+                text = "Login to your account",
+                fontSize = 16.sp,
+                color = Color.Gray
+            )
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Email field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") }
+                placeholder = { Text("Enter your Email") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true
             )
-            Spacer(modifier = Modifier.height(12.dp))
-
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Password field
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
-                visualTransformation = PasswordVisualTransformation()
+                placeholder = { Text("Create Password") },
+                visualTransformation = PasswordVisualTransformation(),
+                modifier = Modifier.fillMaxWidth(),
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true
             )
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(onClick = {
-                authViewModel.login(email, password) { user ->
-                    if (user != null) {
-                        Toast.makeText(context, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
-
-                        if (user.role == "admin") {
-                            navController.navigate(AppRoutes.ADMIN_WORKOUT)
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Login button
+            Button(
+                onClick = {
+                    authViewModel.login(email, password) { user ->
+                        if (user != null) {
+                            Toast.makeText(context, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
+                            if (user.role == "admin") {
+                                navController.navigate(AppRoutes.ADMIN_WORKOUT)
+                            } else {
+                                navController.navigate(AppRoutes.MEMBER_WORKOUT)
+                            }
                         } else {
-                            navController.navigate(AppRoutes.MEMBER_WORKOUT)
+                            Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
                         }
-                    } else {
-                        Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
                     }
-                }
-            }) {
-                Text("Login")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Blue,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(4.dp),
+                elevation = ButtonDefaults.buttonElevation(
+                    defaultElevation = 0.dp
+                )
+            ) {
+                Text(
+                    text = "Login",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
-
-
-            Spacer(modifier = Modifier.height(8.dp))
-            TextButton(onClick = {
-                navController.navigate(AppRoutes.REGISTER)
-            }) {
-                Text("Don't have an account? Register")
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Register link
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Don't have an account? ",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                TextButton(
+                    onClick = { navController.navigate(AppRoutes.REGISTER) },
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+                    Text(
+                        text = "Register",
+                        color = Blue,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 14.sp
+                    )
+                }
             }
         }
     }
