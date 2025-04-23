@@ -1,3 +1,4 @@
+
 package com.example.gymmanagement.ui.screens.login
 
 import android.widget.Toast
@@ -54,7 +55,7 @@ fun LoginScreen(navController: NavController) {
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
-            
+
             // Back button
             IconButton(
                 onClick = { navController.navigateUp() },
@@ -82,17 +83,17 @@ fun LoginScreen(navController: NavController) {
                 fontWeight = FontWeight.Bold,
                 color = Color.Black
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = "Login to your account",
                 fontSize = 16.sp,
                 color = Color.Gray
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // Email field
             OutlinedTextField(
                 value = email,
@@ -107,9 +108,9 @@ fun LoginScreen(navController: NavController) {
                 shape = RoundedCornerShape(4.dp),
                 singleLine = true
             )
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Password field
             OutlinedTextField(
                 value = password,
@@ -125,9 +126,9 @@ fun LoginScreen(navController: NavController) {
                 shape = RoundedCornerShape(4.dp),
                 singleLine = true
             )
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // Login button
             Button(
                 onClick = {
@@ -162,9 +163,9 @@ fun LoginScreen(navController: NavController) {
                     fontWeight = FontWeight.Medium
                 )
             }
-            
+
             Spacer(modifier = Modifier.height(16.dp))
-            
+
             // Register link
             Row(
                 modifier = Modifier.fillMaxWidth(),

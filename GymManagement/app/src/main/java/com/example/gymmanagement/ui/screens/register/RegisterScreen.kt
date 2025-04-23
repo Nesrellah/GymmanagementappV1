@@ -51,7 +51,7 @@ fun RegisterScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(20.dp))
-        
+
         // User Icon
         Icon(
             imageVector = Icons.Default.Person,
@@ -59,9 +59,9 @@ fun RegisterScreen(navController: NavController) {
             modifier = Modifier.size(60.dp),
             tint = Blue
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         // Title
         Text(
             text = "Create Account",
@@ -69,15 +69,15 @@ fun RegisterScreen(navController: NavController) {
             fontWeight = FontWeight.Bold,
             color = Blue
         )
-        
+
         Spacer(modifier = Modifier.height(4.dp))
-        
+
         Text(
             text = "Join our fitness community",
             fontSize = 14.sp,
             color = Color.Gray
         )
-        
+
         Spacer(modifier = Modifier.height(16.dp))
 
         // Input Fields
@@ -87,7 +87,7 @@ fun RegisterScreen(navController: NavController) {
             label = "Name",
             placeholder = "Enter your full Name"
         )
-        
+
         InputField(
             value = email,
             onValueChange = { email = it },
@@ -95,7 +95,7 @@ fun RegisterScreen(navController: NavController) {
             placeholder = "Enter your Email",
             keyboardType = KeyboardType.Email
         )
-        
+
         InputField(
             value = password,
             onValueChange = { password = it },
@@ -103,7 +103,7 @@ fun RegisterScreen(navController: NavController) {
             placeholder = "Create Password",
             isPassword = true
         )
-        
+
         InputField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -111,7 +111,7 @@ fun RegisterScreen(navController: NavController) {
             placeholder = "Confirm your password",
             isPassword = true
         )
-        
+
         InputField(
             value = age,
             onValueChange = { age = it },
@@ -119,7 +119,7 @@ fun RegisterScreen(navController: NavController) {
             placeholder = "Enter your Age",
             keyboardType = KeyboardType.Number
         )
-        
+
         InputField(
             value = height,
             onValueChange = { height = it },
@@ -127,7 +127,7 @@ fun RegisterScreen(navController: NavController) {
             placeholder = "Enter your height in cm",
             keyboardType = KeyboardType.Decimal
         )
-        
+
         InputField(
             value = weight,
             onValueChange = { weight = it },
@@ -135,9 +135,9 @@ fun RegisterScreen(navController: NavController) {
             placeholder = "Enter your weight in kg",
             keyboardType = KeyboardType.Decimal
         )
-        
+
         Spacer(modifier = Modifier.height(32.dp))
-        
+
         // Register Button
         Button(
             onClick = {
@@ -176,9 +176,9 @@ fun RegisterScreen(navController: NavController) {
                 fontWeight = FontWeight.Medium
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
-        
+
         // Login Link
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -198,7 +198,7 @@ fun RegisterScreen(navController: NavController) {
                 modifier = Modifier.clickable { navController.navigate(AppRoutes.LOGIN) }
             )
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
     }
 }
@@ -219,7 +219,7 @@ private fun InputField(
             color = Color.Black,
             modifier = Modifier.padding(bottom = 4.dp)
         )
-        
+
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -240,7 +240,7 @@ private fun InputField(
                 lineHeight = 20.sp
             )
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
     }
 }

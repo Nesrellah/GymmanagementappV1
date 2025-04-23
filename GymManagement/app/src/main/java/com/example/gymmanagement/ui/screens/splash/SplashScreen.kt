@@ -71,9 +71,9 @@ fun HeaderWithLogo() {
                     ),
                 contentScale = ContentScale.Crop
             )
-            
+
             Spacer(modifier = Modifier.height(8.dp))
-            
+
             Text(
                 text = "FITNESS GYM",
                 style = MaterialTheme.typography.titleLarge,
@@ -81,9 +81,9 @@ fun HeaderWithLogo() {
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
-            
+
             Spacer(modifier = Modifier.height(4.dp))
-            
+
             Text(
                 text = "Your journey to a healthier life starts here",
                 style = MaterialTheme.typography.bodyMedium,
@@ -157,13 +157,13 @@ fun SplashScreen(navController: NavController) {
             verticalArrangement = Arrangement.Top
         ) {
             HeaderWithLogo()
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             ContactUsSection()
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             // Gym Equipment Image
             Image(
                 painter = painterResource(id = R.drawable.gym_logo),
@@ -174,9 +174,9 @@ fun SplashScreen(navController: NavController) {
                     .height(120.dp),  // Reduced height
                 contentScale = ContentScale.Crop
             )
-            
+
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             // Buttons at the bottom
             Column(
                 modifier = Modifier
@@ -204,9 +204,9 @@ fun SplashScreen(navController: NavController) {
                         fontWeight = FontWeight.Medium
                     )
                 }
-                
+
                 Spacer(modifier = Modifier.height(8.dp))
-                
+
                 // Register Button - White background with blue border
                 OutlinedButton(
                     onClick = { navController.navigate(AppRoutes.REGISTER) },
