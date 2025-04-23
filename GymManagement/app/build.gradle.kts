@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "com.example.gymmanagement"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.gymmanagement"
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -47,11 +47,16 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.lifecycle.runtime.compose.android)
+    val composeBomVersion = "2023.10.01"
+    implementation(platform("androidx.compose:compose-bom:$composeBomVersion"))
+    
     // Jetpack Compose
-    implementation("androidx.compose.ui:ui:1.5.0")
-    implementation("androidx.compose.material3:material3:1.1.2")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.5.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.5.0")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.foundation:foundation")
+    debugImplementation("androidx.compose.ui:ui-tooling")
 
     // AndroidX Core & Activity Compose
     implementation("androidx.core:core-ktx:1.12.0") // ✅ fix for KeyEventDispatcher error
@@ -61,12 +66,14 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.0")
 
     // Lifecycle + ViewModel
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.2")
 
     // Room Database
-    implementation("androidx.room:room-runtime:2.6.0")
-    kapt("androidx.room:room-compiler:2.6.0")
-    implementation("androidx.room:room-ktx:2.6.0")
+    val roomVersion = "2.6.1"
+    implementation("androidx.room:room-runtime:$roomVersion")
+    kapt("androidx.room:room-compiler:$roomVersion")
+    implementation("androidx.room:room-ktx:$roomVersion")
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.4.0")

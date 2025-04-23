@@ -17,6 +17,7 @@ import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import com.example.gymmanagement.ui.screens.login.LoginScreen
 import com.example.gymmanagement.ui.screens.splash.SplashScreen
 import com.example.gymmanagement.ui.screens.register.RegisterScreen
+import com.example.gymmanagement.ui.screens.admin.workout.AdminWorkoutScreen
 
 // MainActivity.kt
 class MainActivity : ComponentActivity() {
@@ -29,6 +30,13 @@ class MainActivity : ComponentActivity() {
                     composable("splash") { SplashScreen(navController) }
                     composable("login") { LoginScreen(navController) }
                     composable("register") { RegisterScreen(navController) }
+                    composable("admin_workout") { 
+                        AdminWorkoutScreen(
+                            onNavigateToEvents = { navController.navigate("admin_events") },
+                            onNavigateToProgress = { navController.navigate("admin_progress") },
+                            onNavigateToMembers = { navController.navigate("admin_members") }
+                        )
+                    }
                     // Add other screens
                 }
             }
