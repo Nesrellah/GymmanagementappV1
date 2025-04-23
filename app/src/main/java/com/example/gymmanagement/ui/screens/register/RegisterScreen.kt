@@ -226,7 +226,7 @@ private fun InputField(
             placeholder = { Text(placeholder, color = Color.Gray, fontSize = 12.sp) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(48.dp),
+                .heightIn(min = 52.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = Blue,
                 unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
@@ -234,7 +234,11 @@ private fun InputField(
             keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
             shape = RoundedCornerShape(4.dp),
-            singleLine = true
+            singleLine = true,
+            textStyle = androidx.compose.ui.text.TextStyle(
+                fontSize = 14.sp,
+                lineHeight = 20.sp
+            )
         )
         
         Spacer(modifier = Modifier.height(8.dp))
