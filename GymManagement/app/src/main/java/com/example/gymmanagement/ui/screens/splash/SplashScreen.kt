@@ -1,5 +1,6 @@
 package com.example.gymmanagement.ui.screens.splash
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -12,10 +13,12 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -171,7 +174,7 @@ fun SplashScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .height(120.dp),
+                    .height(120.dp),  // Reduced height
                 contentScale = ContentScale.Crop
             )
 
@@ -187,7 +190,8 @@ fun SplashScreen(navController: NavController) {
                 Button(
                     onClick = { 
                         navController.navigate(AppRoutes.LOGIN) {
-                            launchSingleTop = true
+                            // Clear back stack up to splash screen
+                            popUpTo(AppRoutes.SPLASH) { inclusive = false }
                         }
                     },
                     modifier = Modifier
@@ -215,7 +219,8 @@ fun SplashScreen(navController: NavController) {
                 OutlinedButton(
                     onClick = { 
                         navController.navigate(AppRoutes.REGISTER) {
-                            launchSingleTop = true
+                            // Clear back stack up to splash screen
+                            popUpTo(AppRoutes.SPLASH) { inclusive = false }
                         }
                     },
                     modifier = Modifier

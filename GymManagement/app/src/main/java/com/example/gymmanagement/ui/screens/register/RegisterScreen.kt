@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
+import com.example.gymmanagement.GymManagementApp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,8 +39,11 @@ fun RegisterScreen(navController: NavController) {
     var age by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
-    val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
+    val app = context.applicationContext as GymManagementApp
+    val authViewModel: AuthViewModel = viewModel(
+        factory = AuthViewModel.Factory(app.userRepository)
+    )
     val scrollState = rememberScrollState()
 
     Column(
