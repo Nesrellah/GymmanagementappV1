@@ -4,7 +4,7 @@ import android.app.Application
 import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gymmanagement.data.db.AppDatabase
+import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.model.Workout
 import com.example.gymmanagement.data.repository.WorkoutRepository
 import com.example.gymmanagement.utils.ImagePicker

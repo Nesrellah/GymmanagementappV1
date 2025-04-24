@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,8 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gymmanagement.R
-import com.example.gymmanagement.ui.navigation.AppRoutes
+import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
+import kotlinx.coroutines.delay
 
 @Composable
 fun WaveBackground(content: @Composable () -> Unit) {
@@ -148,7 +150,9 @@ fun ContactUsSection() {
 }
 
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(
+    onNavigateToLogin: () -> Unit
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -185,7 +189,7 @@ fun SplashScreen(navController: NavController) {
             ) {
                 // Login Button
                 Button(
-                    onClick = { navController.navigate(AppRoutes.LOGIN) },
+                    onClick = { onNavigateToLogin() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -209,7 +213,7 @@ fun SplashScreen(navController: NavController) {
 
                 // Register Button - White background with blue border
                 OutlinedButton(
-                    onClick = { navController.navigate(AppRoutes.REGISTER) },
+                    onClick = { onNavigateToLogin() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)

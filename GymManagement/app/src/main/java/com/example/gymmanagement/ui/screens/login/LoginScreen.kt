@@ -1,4 +1,3 @@
-
 package com.example.gymmanagement.ui.screens.login
 
 import android.widget.Toast
@@ -26,13 +25,16 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gymmanagement.R
-import com.example.gymmanagement.ui.navigation.AppRoutes
+import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
+fun LoginScreen(
+    navController: NavController,
+    onLoginSuccess: (Boolean) -> Unit
+) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val authViewModel: AuthViewModel = viewModel()
@@ -115,7 +117,7 @@ fun LoginScreen(navController: NavController) {
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("Create Password") },
+                placeholder = { Text("Enter Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = TextFieldDefaults.outlinedTextFieldColors(
@@ -135,11 +137,7 @@ fun LoginScreen(navController: NavController) {
                     authViewModel.login(email, password) { user ->
                         if (user != null) {
                             Toast.makeText(context, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
-                            if (user.role == "admin") {
-                                navController.navigate(AppRoutes.ADMIN_WORKOUT)
-                            } else {
-                                navController.navigate(AppRoutes.MEMBER_WORKOUT)
-                            }
+                            onLoginSuccess(user.role == "admin")
                         } else {
                             Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
                         }

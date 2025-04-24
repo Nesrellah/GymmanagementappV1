@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -35,6 +36,7 @@ import com.example.gymmanagement.utils.rememberImagePicker
 import kotlinx.coroutines.flow.Flow
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 
+
 // Define custom colors
 private val DeepBlue = Color(0xFF0000CD)
 private val LightBlue = Color(0xFFE6E9FD)
@@ -45,55 +47,68 @@ private val Green = Color(0xFF4CAF50)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminWorkoutScreen(
-    viewModel: AdminWorkoutViewModel = viewModel(),
-    onNavigateToEvents: () -> Unit = {},
-    onNavigateToProgress: () -> Unit = {},
-    onNavigateToMembers: () -> Unit = {}
+    onNavigateToEvents: () -> Unit,
+    onNavigateToProgress: () -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedWorkout by remember { mutableStateOf<Workout?>(null) }
-    val workouts by remember(viewModel) { viewModel.workouts }.collectAsState(initial = emptyList())
+    val viewModel: AdminWorkoutViewModel = viewModel()
+    val workouts by viewModel.workouts.collectAsState(initial = emptyList())
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Gym Workouts", color = White) },
-                colors = TopAppBarDefaults.topAppBarColors(containerColor = DeepBlue)
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        // Top Navigation Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Workouts",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = DeepBlue
             )
-        },
-        bottomBar = {
-            NavigationBar {
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, "Workouts") },
-                    label = { Text("Workouts") },
-                    selected = true,
-                    onClick = { }
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, "Events") },
-                    label = { Text("Events") },
-                    selected = false,
-                    onClick = onNavigateToEvents
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, "Progress") },
-                    label = { Text("Progress") },
-                    selected = false,
-                    onClick = onNavigateToProgress
-                )
-                NavigationBarItem(
-                    icon = { Icon(Icons.Default.Person, "Members") },
-                    label = { Text("Members") },
-                    selected = false,
-                    onClick = onNavigateToMembers
-                )
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                IconButton(
+                    onClick = onNavigateToEvents,
+                    modifier = Modifier
+                        .background(LightBlue, CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Events",
+                        tint = DeepBlue
+                    )
+                }
+                
+                IconButton(
+                    onClick = onNavigateToProgress,
+                    modifier = Modifier
+                        .background(LightBlue, CircleShape)
+                        .size(40.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Progress",
+                        tint = DeepBlue
+                    )
+                }
             }
         }
-    ) { padding ->
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
                 .padding(16.dp)
         ) {
             Text(
@@ -108,7 +123,7 @@ fun AdminWorkoutScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -141,6 +156,19 @@ fun AdminWorkoutScreen(
     }
 }
 
+@Preview(showBackground = true, widthDp = 360, heightDp = 800)
+@Composable
+fun AdminWorkoutScreenPreview() {
+    GymManagementAppTheme {
+        Surface(
+            modifier = Modifier.fillMaxSize(),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            AdminWorkoutScreen({}, {})
+        }
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutForm(
@@ -164,7 +192,7 @@ fun WorkoutForm(
                 .fillMaxWidth()
                 .height(150.dp)
                 .clickable { imagePicker.launch("image/*") },
-            shape = RoundedCornerShape(4.dp),
+            shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = LightBlue)
         ) {
             Box(
@@ -180,20 +208,18 @@ fun WorkoutForm(
                     )
                 } else {
                     Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Add Image",
                             tint = DeepBlue,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(32.dp)
                         )
                         Text(
                             text = "Tap to add an image",
                             color = DeepBlue,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(top = 4.dp)
+                            fontSize = 12.sp
                         )
                     }
                 }
@@ -303,13 +329,26 @@ fun WorkoutForm(
                 containerColor = DeepBlue,
                 contentColor = Color.White
             ),
-            shape = RoundedCornerShape(2.dp)
+            shape = RoundedCornerShape(4.dp)
         ) {
             Text(
                 text = "Create",
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 maxLines = 1
             )
+        }
+    }
+}
+
+@Preview(showBackground = true, widthDp = 360)
+@Composable
+fun WorkoutFormPreview() {
+    GymManagementAppTheme {
+        Surface(
+            modifier = Modifier.padding(16.dp),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            WorkoutForm(onWorkoutCreated = {})
         }
     }
 }
@@ -323,11 +362,10 @@ fun WorkoutCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(180.dp),
+            .height(160.dp),
         shape = RoundedCornerShape(8.dp)
     ) {
         Box {
-            // Background Image
             if (workout.imageUri != null) {
                 AsyncImage(
                     model = workout.imageUri,
@@ -337,7 +375,6 @@ fun WorkoutCard(
                 )
             }
 
-            // Semi-transparent overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -347,29 +384,30 @@ fun WorkoutCard(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Top
                 ) {
                     Surface(
-                        modifier = Modifier.padding(end = 8.dp),
                         color = Color.White.copy(alpha = 0.9f),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
-                            text = workout.eventTitle,
+                            text = "Trainee ID: ${workout.traineeId}",
                             color = Color.Black,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                     }
 
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.End,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 8.dp)
                     ) {
                         IconButton(
                             onClick = onEditClick,
@@ -384,6 +422,8 @@ fun WorkoutCard(
                                 modifier = Modifier.size(20.dp)
                             )
                         }
+
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         IconButton(
                             onClick = onDeleteClick,
@@ -401,226 +441,35 @@ fun WorkoutCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.weight(1f))
-
-                Surface(
-                    color = Color.White.copy(alpha = 0.9f),
-                    shape = RoundedCornerShape(4.dp)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    Text(
-                        text = "${workout.sets} sets | ${workout.repsOrSecs} reps | ${workout.restTime}s rest",
-                        color = Color.Black,
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EditWorkoutDialog(
-    workout: Workout?,
-    onDismissRequest: () -> Unit,
-    onConfirm: (Workout) -> Unit
-) {
-    var eventTitle by remember { mutableStateOf(workout?.eventTitle ?: "") }
-    var traineeId by remember { mutableStateOf(workout?.traineeId ?: "") }
-    var sets by remember { mutableStateOf(workout?.sets?.toString() ?: "") }
-    var repsOrSecs by remember { mutableStateOf(workout?.repsOrSecs?.toString() ?: "") }
-    var restTime by remember { mutableStateOf(workout?.restTime?.toString() ?: "") }
-    var imageUri by remember { mutableStateOf<Uri?>(workout?.imageUri?.let { Uri.parse(it) }) }
-
-    val imagePicker = rememberImagePicker { uri ->
-        imageUri = uri
-    }
-
-    Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = RoundedCornerShape(16.dp),
-            color = MaterialTheme.colorScheme.surface
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = "Edit Workout",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clickable { imagePicker.launch("image/*") },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightBlue)
-                ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                    Surface(
+                        color = Color.White.copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(4.dp)
                     ) {
-                        if (imageUri != null) {
-                            AsyncImage(
-                                model = imageUri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Add,
-                                    contentDescription = null,
-                                    tint = DeepBlue,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Text(
-                                    text = "Tap to add an image",
-                                    color = DeepBlue,
-                                    fontSize = 14.sp,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                OutlinedTextField(
-                    value = eventTitle,
-                    onValueChange = { eventTitle = it },
-                    label = { Text("Event title") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = traineeId,
-                    onValueChange = { traineeId = it },
-                    label = { Text("Trainee Id") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = sets,
-                    onValueChange = { sets = it },
-                    label = { Text("Sets") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = repsOrSecs,
-                    onValueChange = { repsOrSecs = it },
-                    label = { Text("Reps/sec") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                OutlinedTextField(
-                    value = restTime,
-                    onValueChange = { restTime = it },
-                    label = { Text("Rest time") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = onDismissRequest,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.textButtonColors(contentColor = Color.Gray)
-                    ) {
-                        Text("Cancel")
+                        Text(
+                            text = workout.eventTitle,
+                            color = Color.Black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
 
-                    Button(
-                        onClick = {
-                            onConfirm(workout?.copy(
-                                eventTitle = eventTitle,
-                                traineeId = traineeId,
-                                sets = sets.toIntOrNull() ?: 0,
-                                repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
-                                restTime = restTime.toIntOrNull() ?: 0,
-                                imageUri = imageUri?.toString()
-                            ) ?: Workout(
-                                eventTitle = eventTitle,
-                                traineeId = traineeId,
-                                sets = sets.toIntOrNull() ?: 0,
-                                repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
-                                restTime = restTime.toIntOrNull() ?: 0,
-                                imageUri = imageUri?.toString()
-                            ))
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    Surface(
+                        color = Color.White.copy(alpha = 0.9f),
+                        shape = RoundedCornerShape(4.dp)
                     ) {
-                        Text("Delete")
-                    }
-
-                    Button(
-                        onClick = {
-                            onConfirm(workout?.copy(
-                                eventTitle = eventTitle,
-                                traineeId = traineeId,
-                                sets = sets.toIntOrNull() ?: 0,
-                                repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
-                                restTime = restTime.toIntOrNull() ?: 0,
-                                imageUri = imageUri?.toString()
-                            ) ?: Workout(
-                                eventTitle = eventTitle,
-                                traineeId = traineeId,
-                                sets = sets.toIntOrNull() ?: 0,
-                                repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
-                                restTime = restTime.toIntOrNull() ?: 0,
-                                imageUri = imageUri?.toString()
-                            ))
-                        },
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = DeepBlue)
-                    ) {
-                        Text("Update")
+                        Text(
+                            text = "${workout.sets} sets | ${workout.repsOrSecs} reps | ${workout.restTime}s rest",
+                            color = Color.Black,
+                            fontSize = 14.sp,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
             }
-        }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun WorkoutFormPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            WorkoutForm(onWorkoutCreated = {})
         }
     }
 }
@@ -646,6 +495,242 @@ fun WorkoutCardPreview() {
                 onEditClick = {},
                 onDeleteClick = {}
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditWorkoutDialog(
+    workout: Workout?,
+    onDismissRequest: () -> Unit,
+    onConfirm: (Workout) -> Unit
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            shape = RoundedCornerShape(8.dp),
+            color = Color.White
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = "Edit Workout",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                var eventTitle by remember { mutableStateOf(workout?.eventTitle ?: "") }
+                var traineeId by remember { mutableStateOf(workout?.traineeId ?: "") }
+                var sets by remember { mutableStateOf(workout?.sets?.toString() ?: "") }
+                var repsOrSecs by remember { mutableStateOf(workout?.repsOrSecs?.toString() ?: "") }
+                var restTime by remember { mutableStateOf(workout?.restTime?.toString() ?: "") }
+                var imageUri by remember { mutableStateOf<Uri?>(workout?.imageUri?.let { Uri.parse(it) }) }
+
+                val imagePicker = rememberImagePicker { uri ->
+                    imageUri = uri
+                }
+
+                // Image picker
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp)
+                        .clickable { imagePicker.launch("image/*") },
+                    shape = RoundedCornerShape(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = LightBlue)
+                ) {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (imageUri != null) {
+                            AsyncImage(
+                                model = imageUri,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Person,
+                                    contentDescription = "Add Image",
+                                    tint = DeepBlue,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Text(
+                                    text = "Tap to add an image",
+                                    color = DeepBlue,
+                                    fontSize = 12.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Form fields
+                OutlinedTextField(
+                    value = eventTitle,
+                    onValueChange = { eventTitle = it },
+                    label = { Text("Event title", fontSize = 12.sp) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = LightBlue,
+                        focusedBorderColor = DeepBlue
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = traineeId,
+                    onValueChange = { traineeId = it },
+                    label = { Text("Trainee Id", fontSize = 12.sp) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = LightBlue,
+                        focusedBorderColor = DeepBlue
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = sets,
+                    onValueChange = { sets = it },
+                    label = { Text("Sets", fontSize = 12.sp) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = LightBlue,
+                        focusedBorderColor = DeepBlue
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = repsOrSecs,
+                    onValueChange = { repsOrSecs = it },
+                    label = { Text("Reps/ sec", fontSize = 12.sp) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = LightBlue,
+                        focusedBorderColor = DeepBlue
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedTextField(
+                    value = restTime,
+                    onValueChange = { restTime = it },
+                    label = { Text("Rest time", fontSize = 12.sp) },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(4.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        unfocusedBorderColor = LightBlue,
+                        focusedBorderColor = DeepBlue
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    OutlinedButton(
+                        onClick = onDismissRequest,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        shape = RoundedCornerShape(4.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color.Black
+                        )
+                    ) {
+                        Text("Cancel", fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            workout?.id?.let { id ->
+                                onConfirm(
+                                    Workout(
+                                        id = id,
+                                        eventTitle = eventTitle,
+                                        traineeId = traineeId,
+                                        sets = sets.toIntOrNull() ?: 0,
+                                        repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
+                                        restTime = restTime.toIntOrNull() ?: 0,
+                                        imageUri = imageUri?.toString()
+                                    )
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.Red,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text("Delete", fontSize = 12.sp)
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    Button(
+                        onClick = {
+                            workout?.id?.let { id ->
+                                onConfirm(
+                                    Workout(
+                                        id = id,
+                                        eventTitle = eventTitle,
+                                        traineeId = traineeId,
+                                        sets = sets.toIntOrNull() ?: 0,
+                                        repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
+                                        restTime = restTime.toIntOrNull() ?: 0,
+                                        imageUri = imageUri?.toString()
+                                    )
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(40.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DeepBlue,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(4.dp)
+                    ) {
+                        Text("Update", fontSize = 12.sp)
+                    }
+                }
+            }
         }
     }
 }

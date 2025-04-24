@@ -1,33 +1,32 @@
 package com.example.gymmanagement.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gymmanagement.data.model.Event
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.example.gymmanagement.data.database.AppDatabase
+import com.example.gymmanagement.data.model.EventEntity
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 
-class AdminEventViewModel : ViewModel() {
-    private val _events = MutableStateFlow<List<Event>>(emptyList())
-    val events: StateFlow<List<Event>> = _events
+class AdminEventViewModel(application: Application) : AndroidViewModel(application) {
+    private val eventDao = AppDatabase.getDatabase(application).eventDao()
+    val events: Flow<List<EventEntity>> = eventDao.getAllEvents()
 
-    fun addEvent(event: Event) {
+    fun addEvent(event: EventEntity) {
         viewModelScope.launch {
-            _events.value = _events.value + event
+            eventDao.insertEvent(event)
         }
     }
 
-    fun updateEvent(event: Event) {
+    fun updateEvent(event: EventEntity) {
         viewModelScope.launch {
-            _events.value = _events.value.map { 
-                if (it.id == event.id) event else it 
-            }
+            eventDao.updateEvent(event)
         }
     }
 
-    fun deleteEvent(event: Event) {
+    fun deleteEvent(event: EventEntity) {
         viewModelScope.launch {
-            _events.value = _events.value.filter { it.id != event.id }
+            eventDao.deleteEvent(event)
         }
     }
 } 

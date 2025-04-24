@@ -3,7 +3,7 @@ package com.example.gymmanagement.viewmodel
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.gymmanagement.data.db.AppDatabase
+import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.model.UserEntity
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

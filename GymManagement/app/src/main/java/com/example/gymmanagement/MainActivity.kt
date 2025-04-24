@@ -4,40 +4,47 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import com.example.gymmanagement.data.dao.MemberWorkoutDao
+import com.example.gymmanagement.data.repository.MemberWorkoutRepositoryImpl
+import com.example.gymmanagement.data.model.MemberWorkout
+import com.example.gymmanagement.ui.screens.member.workout.MemberWorkoutScreen
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
-import com.example.gymmanagement.ui.screens.login.LoginScreen
-import com.example.gymmanagement.ui.screens.splash.SplashScreen
-import com.example.gymmanagement.ui.screens.register.RegisterScreen
-import com.example.gymmanagement.ui.screens.admin.workout.AdminWorkoutScreen
+import com.example.gymmanagement.viewmodel.MemberWorkoutViewModel
+import kotlinx.coroutines.flow.flowOf
 
 // MainActivity.kt
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize DAO (in a real app, this would be from Room database)
+        val memberWorkoutDao = object : MemberWorkoutDao {
+            override fun getWorkoutsForTrainee(traineeId: String) = flowOf(MemberWorkoutViewModel.previewWorkouts)
+            override fun getAllWorkouts() = flowOf(MemberWorkoutViewModel.previewWorkouts)
+            override suspend fun insertWorkout(workout: MemberWorkout) {}
+            override suspend fun updateWorkout(workout: MemberWorkout) {}
+            override suspend fun deleteWorkout(workout: MemberWorkout) {}
+            override suspend fun updateWorkoutCompletion(workoutId: Int, isCompleted: Boolean) {}
+            override fun getCompletedWorkoutsCount(traineeId: String) = flowOf(1)
+            override fun getTotalWorkoutsCount(traineeId: String) = flowOf(3)
+        }
+
+        // Initialize repository with DAO
+        val repository = MemberWorkoutRepositoryImpl(memberWorkoutDao)
+
+        // Initialize ViewModel with repository
+        val viewModel = MemberWorkoutViewModel(repository)
+
         setContent {
             GymManagementAppTheme {
-                val navController = rememberNavController()
-                NavHost(navController, startDestination = "splash") {
-                    composable("splash") { SplashScreen(navController) }
-                    composable("login") { LoginScreen(navController) }
-                    composable("register") { RegisterScreen(navController) }
-                    composable("admin_workout") { 
-                        AdminWorkoutScreen(
-                            onNavigateToEvents = { navController.navigate("admin_events") },
-                            onNavigateToProgress = { navController.navigate("admin_progress") },
-                            onNavigateToMembers = { navController.navigate("admin_members") }
-                        )
-                    }
-                    // Add other screens
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    MemberWorkoutScreen(viewModel = viewModel)
                 }
             }
         }
