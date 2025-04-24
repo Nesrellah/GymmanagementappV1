@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -44,166 +45,174 @@ fun RegisterScreen(navController: NavController) {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModel.Factory(app.userRepository)
     )
-    val scrollState = rememberScrollState()
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
-            .verticalScroll(scrollState)
-            .padding(horizontal = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(20.dp))
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 24.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.Top
+        ) {
+            // Back Button
+            IconButton(
+                onClick = { navController.navigateUp() },
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
 
-        // User Icon
-        Icon(
-            imageVector = Icons.Default.Person,
-            contentDescription = "User Icon",
-            modifier = Modifier.size(60.dp),
-            tint = Blue
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
+            // Profile Icon
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Profile",
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.CenterHorizontally),
+                tint = Blue
+            )
 
-        // Title
-        Text(
-            text = "Create Account",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Blue
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(4.dp))
+            // Title
+            Text(
+                text = "Create Account",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
 
-        Text(
-            text = "Join our fitness community",
-            fontSize = 14.sp,
-            color = Color.Gray
-        )
+            Text(
+                text = "Join our fitness community",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 4.dp)
+            )
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Input Fields
-        InputField(
-            value = name,
-            onValueChange = { name = it },
-            label = "Name",
-            placeholder = "Enter your full Name"
-        )
+            // Input Fields
+            InputField(
+                value = name,
+                onValueChange = { name = it },
+                label = "Name",
+                placeholder = "Enter your full Name"
+            )
 
-        InputField(
-            value = email,
-            onValueChange = { email = it },
-            label = "Email",
-            placeholder = "Enter your Email",
-            keyboardType = KeyboardType.Email
-        )
+            InputField(
+                value = email,
+                onValueChange = { email = it },
+                label = "Email",
+                placeholder = "Enter your Email",
+                keyboardType = KeyboardType.Email
+            )
 
-        InputField(
-            value = password,
-            onValueChange = { password = it },
-            label = "Password",
-            placeholder = "Create Password",
-            isPassword = true
-        )
+            InputField(
+                value = password,
+                onValueChange = { password = it },
+                label = "Password",
+                placeholder = "Create Password",
+                isPassword = true
+            )
 
-        InputField(
-            value = confirmPassword,
-            onValueChange = { confirmPassword = it },
-            label = "Confirm Password",
-            placeholder = "Confirm your password",
-            isPassword = true
-        )
+            InputField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = "Confirm Password",
+                placeholder = "Confirm your password",
+                isPassword = true
+            )
 
-        InputField(
-            value = age,
-            onValueChange = { age = it },
-            label = "Age",
-            placeholder = "Enter your Age",
-            keyboardType = KeyboardType.Number
-        )
+            InputField(
+                value = age,
+                onValueChange = { age = it },
+                label = "Age",
+                placeholder = "Enter your Age",
+                keyboardType = KeyboardType.Number
+            )
 
-        InputField(
-            value = height,
-            onValueChange = { height = it },
-            label = "Height (cm)",
-            placeholder = "Enter your height in cm",
-            keyboardType = KeyboardType.Decimal
-        )
+            InputField(
+                value = height,
+                onValueChange = { height = it },
+                label = "Height (cm)",
+                placeholder = "Enter your height in cm",
+                keyboardType = KeyboardType.Decimal
+            )
 
-        InputField(
-            value = weight,
-            onValueChange = { weight = it },
-            label = "Weight(kg)",
-            placeholder = "Enter your weight in kg",
-            keyboardType = KeyboardType.Decimal
-        )
+            InputField(
+                value = weight,
+                onValueChange = { weight = it },
+                label = "Weight(kg)",
+                placeholder = "Enter your weight in kg",
+                keyboardType = KeyboardType.Decimal
+            )
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Register Button
-        Button(
-            onClick = {
-                if (password != confirmPassword) {
-                    Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                    return@Button
-                }
+            // Register Button
+            Button(
+                onClick = {
+                    if (password != confirmPassword) {
+                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
 
-                authViewModel.registerUser(
-                    name = name,
-                    email = email,
-                    password = password,
-                    age = age.toIntOrNull() ?: 0,
-                    height = height.toFloatOrNull() ?: 0f,
-                    weight = weight.toFloatOrNull() ?: 0f,
-                    role = "member"
-                ) { success, message ->
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                    if (success) {
+                    authViewModel.registerUser(
+                        name = name,
+                        email = email,
+                        password = password,
+                        age = age.toIntOrNull() ?: 0,
+                        height = height.toFloatOrNull() ?: 0f,
+                        weight = weight.toFloatOrNull() ?: 0f,
+                        role = "member"
+                    ) { success, message ->
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                        if (success) {
+                            navController.navigate(AppRoutes.LOGIN)
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Blue),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text("Register", fontSize = 16.sp)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Login Link
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 24.dp),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Already have an account? Login",
+                    color = Color.Gray,
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable { 
                         navController.navigate(AppRoutes.LOGIN)
                     }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Blue,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(4.dp)
-        ) {
-            Text(
-                text = "Register",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
+                )
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Login Link
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Already have an account? ",
-                color = Color.Gray,
-                fontSize = 14.sp
-            )
-            Text(
-                text = "Login",
-                color = Blue,
-                fontWeight = FontWeight.Medium,
-                fontSize = 14.sp,
-                modifier = Modifier.clickable { navController.navigate(AppRoutes.LOGIN) }
-            )
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
     }
 }
 
@@ -219,32 +228,23 @@ private fun InputField(
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            fontSize = 14.sp,
             color = Color.Black,
-            modifier = Modifier.padding(bottom = 4.dp)
+            modifier = Modifier.padding(bottom = 8.dp)
         )
-
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color.Gray, fontSize = 12.sp) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = 52.dp),
+            placeholder = { Text(placeholder, color = Color.Gray) },
+            modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Blue,
-                unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                unfocusedBorderColor = Color.LightGray,
+                focusedBorderColor = Blue
             ),
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
             visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-            shape = RoundedCornerShape(4.dp),
-            singleLine = true,
-            textStyle = androidx.compose.ui.text.TextStyle(
-                fontSize = 14.sp,
-                lineHeight = 20.sp
-            )
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            singleLine = true
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

@@ -3,6 +3,7 @@ package com.example.gymmanagement.ui.screens.login
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -38,7 +39,6 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var showError by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val app = context.applicationContext as GymManagementApp
     val authViewModel: AuthViewModel = viewModel(
@@ -46,10 +46,18 @@ fun LoginScreen(
     )
 
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    val currentUser by authViewModel.currentUser.collectAsState()
 
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
-            onLoginSuccess(authViewModel.currentUser.value?.role == "admin")
+            currentUser?.let { user ->
+                Toast.makeText(context, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
+                if (user.role == "admin") {
+                    navController.navigate(AppRoutes.ADMIN_WORKOUT)
+                } else {
+                    navController.navigate(AppRoutes.MEMBER_WORKOUT)
+                }
+            }
         }
     }
 
@@ -112,22 +120,16 @@ fun LoginScreen(
             // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = { 
-                    email = it
-                },
-                label = { Text("Email") },
-                placeholder = { Text("Enter your email") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                onValueChange = { email = it },
+                placeholder = { Text("Enter your Email") },
                 modifier = Modifier.fillMaxWidth(),
-                isError = showError,
-                supportingText = {
-                    if (showError) {
-                        Text(
-                            text = "Invalid email format",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -135,32 +137,18 @@ fun LoginScreen(
             // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = { 
-                    password = it
-                },
-                label = { Text("Password") },
-                placeholder = { Text("Enter your password") },
+                onValueChange = { password = it },
+                placeholder = { Text("Create Password") },
                 visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier.fillMaxWidth(),
-                isError = showError,
-                supportingText = {
-                    if (showError) {
-                        Text(
-                            text = "Password must be at least 6 characters",
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
+                colors = TextFieldDefaults.outlinedTextFieldColors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                shape = RoundedCornerShape(4.dp),
+                singleLine = true
             )
-
-            if (showError) {
-                Text(
-                    text = "Invalid email or password",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
