@@ -4,30 +4,30 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import com.example.gymmanagement.data.dao.UserDao
-import com.example.gymmanagement.data.dao.WorkoutDao
-import com.example.gymmanagement.data.dao.EventDao
-import com.example.gymmanagement.data.dao.MemberWorkoutDao
-import com.example.gymmanagement.data.model.UserEntity
-import com.example.gymmanagement.data.model.Workout
-import com.example.gymmanagement.data.model.EventEntity
-import com.example.gymmanagement.data.model.MemberWorkout
+import com.example.gymmanagement.data.dao.*
+import com.example.gymmanagement.data.model.*
 
 @Database(
     entities = [
         UserEntity::class,
+        UserProfile::class,
         Workout::class,
         EventEntity::class,
-        MemberWorkout::class
+        MemberWorkout::class,
+        MemberEvent::class,
+        TraineeProgress::class
     ],
     version = 1,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
+    abstract fun userProfileDao(): UserProfileDao
     abstract fun workoutDao(): WorkoutDao
     abstract fun eventDao(): EventDao
     abstract fun memberWorkoutDao(): MemberWorkoutDao
+    abstract fun memberEventDao(): MemberEventDao
+    abstract fun traineeProgressDao(): TraineeProgressDao
 
     companion object {
         @Volatile
@@ -39,7 +39,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "gym_management_db"
-                ).build()
+                )
+                .fallbackToDestructiveMigration()
+                .build()
                 INSTANCE = instance
                 instance
             }

@@ -37,8 +37,17 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var showError by remember { mutableStateOf(false) }
     val authViewModel: AuthViewModel = viewModel()
     val context = LocalContext.current
+
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+
+    LaunchedEffect(isLoggedIn) {
+        if (isLoggedIn) {
+            onLoginSuccess(authViewModel.currentUser.value?.role == "admin")
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -99,16 +108,22 @@ fun LoginScreen(
             // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
-                placeholder = { Text("Enter your Email") },
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                ),
+                onValueChange = { 
+                    email = it
+                },
+                label = { Text("Email") },
+                placeholder = { Text("Enter your email") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                shape = RoundedCornerShape(4.dp),
-                singleLine = true
+                modifier = Modifier.fillMaxWidth(),
+                isError = showError,
+                supportingText = {
+                    if (showError) {
+                        Text(
+                            text = "Invalid email format",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -116,32 +131,39 @@ fun LoginScreen(
             // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
-                placeholder = { Text("Enter Password") },
+                onValueChange = { 
+                    password = it
+                },
+                label = { Text("Password") },
+                placeholder = { Text("Enter your password") },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                ),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                shape = RoundedCornerShape(4.dp),
-                singleLine = true
+                modifier = Modifier.fillMaxWidth(),
+                isError = showError,
+                supportingText = {
+                    if (showError) {
+                        Text(
+                            text = "Password must be at least 6 characters",
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
             )
+
+            if (showError) {
+                Text(
+                    text = "Invalid email or password",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Login button
             Button(
                 onClick = {
-                    authViewModel.login(email, password) { user ->
-                        if (user != null) {
-                            Toast.makeText(context, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
-                            onLoginSuccess(user.role == "admin")
-                        } else {
-                            Toast.makeText(context, "Invalid email or password", Toast.LENGTH_SHORT).show()
-                        }
-                    }
+                    authViewModel.login(email, password)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

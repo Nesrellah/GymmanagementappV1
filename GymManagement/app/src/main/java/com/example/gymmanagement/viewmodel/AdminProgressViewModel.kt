@@ -1,50 +1,32 @@
 package com.example.gymmanagement.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.gymmanagement.data.model.TraineeProgress
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import com.example.gymmanagement.data.repository.TraineeProgressRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 
-class AdminProgressViewModel : ViewModel() {
-    private val _trainees = MutableStateFlow<List<TraineeProgress>>(emptyList())
-    val trainees: StateFlow<List<TraineeProgress>> = _trainees
+class AdminProgressViewModel(
+    private val repository: TraineeProgressRepository
+) : ViewModel() {
+    val allProgress: Flow<List<TraineeProgress>> = repository.getAllProgress()
 
-    init {
-        // For demonstration, populate with sample data
-        // In a real app, this would come from your database
-        _trainees.value = listOf(
-            TraineeProgress(
-                id = 1,
-                name = "Abel Melaku",
-                email = "abel@example.com",
-                completedWorkouts = 3,
-                totalWorkouts = 5
-            ),
-            TraineeProgress(
-                id = 2,
-                name = "Meron Nebyu",
-                email = "meron@example.com",
-                completedWorkouts = 4,
-                totalWorkouts = 5
-            ),
-            TraineeProgress(
-                id = 3,
-                name = "Hana Hagos",
-                email = "hana@example.com",
-                completedWorkouts = 9,
-                totalWorkouts = 10
-            )
-        )
+    fun updateProgress(progress: TraineeProgress) {
+        viewModelScope.launch {
+            repository.updateProgress(progress)
+        }
     }
 
-    fun updateTraineeProgress(traineeId: Int, completedWorkouts: Int) {
-        val updatedTrainees = _trainees.value.map { trainee ->
-            if (trainee.id == traineeId) {
-                trainee.copy(completedWorkouts = completedWorkouts)
-            } else {
-                trainee
-            }
+    fun insertProgress(progress: TraineeProgress) {
+        viewModelScope.launch {
+            repository.insertProgress(progress)
         }
-        _trainees.value = updatedTrainees
+    }
+
+    fun deleteProgress(progress: TraineeProgress) {
+        viewModelScope.launch {
+            repository.deleteProgress(progress)
+        }
     }
 } 

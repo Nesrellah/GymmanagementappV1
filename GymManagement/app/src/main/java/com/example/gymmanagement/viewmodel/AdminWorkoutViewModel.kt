@@ -12,23 +12,32 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
-class AdminWorkoutViewModel(application:    Application) : AndroidViewModel(application) {
-    private val database = AppDatabase.getDatabase(application)
-    private val workoutDao = database.workoutDao()
-    private val repository = WorkoutRepository(workoutDao)
-    private val imagePicker = ImagePicker(application)
+class AdminWorkoutViewModel(
+    private val repository: WorkoutRepository,
+    private val imagePicker: ImagePicker
+) : ViewModel() {
+    private val _selectedWorkout = MutableStateFlow<Workout?>(null)
+    val selectedWorkout: StateFlow<Workout?> = _selectedWorkout.asStateFlow()
 
-    private val _workouts = workoutDao.getAllWorkouts()
+    val workouts: StateFlow<List<Workout>> = repository.getAllWorkouts()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
 
-    val workouts: StateFlow<List<Workout>> = _workouts
+    fun selectWorkout(workoutId: Int) {
+        viewModelScope.launch {
+            _selectedWorkout.value = repository.getWorkoutById(workoutId)
+        }
+    }
 
-    fun addWorkout(workout: Workout) {
+    fun insertWorkout(workout: Workout) {
         viewModelScope.launch {
             repository.insertWorkout(workout)
         }
@@ -48,5 +57,18 @@ class AdminWorkoutViewModel(application:    Application) : AndroidViewModel(appl
 
     fun handleImageSelection(uri: Uri): String? {
         return imagePicker.saveImageToInternalStorage(uri)
+    }
+
+    class Factory(
+        private val repository: WorkoutRepository,
+        private val imagePicker: ImagePicker
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            if (modelClass.isAssignableFrom(AdminWorkoutViewModel::class.java)) {
+                return AdminWorkoutViewModel(repository, imagePicker) as T
+            }
+            throw IllegalArgumentException("Unknown ViewModel class")
+        }
     }
 } 

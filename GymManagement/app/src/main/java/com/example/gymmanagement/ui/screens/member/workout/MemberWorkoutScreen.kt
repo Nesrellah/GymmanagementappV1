@@ -106,7 +106,10 @@ fun WorkoutCard(
     onToggleCompletion: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFFE1EBF5)
+        )
     ) {
         Column(
             modifier = Modifier
@@ -125,7 +128,10 @@ fun WorkoutCard(
                 )
                 Checkbox(
                     checked = workout.isCompleted,
-                    onCheckedChange = { onToggleCompletion() }
+                    onCheckedChange = { onToggleCompletion() },
+                    colors = CheckboxDefaults.colors(
+                        checkedColor = Color(0xFF4CAF50)
+                    )
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))

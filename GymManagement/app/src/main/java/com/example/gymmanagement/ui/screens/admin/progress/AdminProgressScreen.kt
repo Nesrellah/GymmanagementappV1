@@ -9,126 +9,124 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymmanagement.data.model.TraineeProgress
+import com.example.gymmanagement.data.repository.TraineeProgressRepository
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import com.example.gymmanagement.viewmodel.AdminProgressViewModel
-
-private val DeepBlue = Color(0xFF0000CD)
-private val LightBlue = Color(0xFFE6E9FD)
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AdminProgressScreen(
     viewModel: AdminProgressViewModel = viewModel()
 ) {
-    val trainees by viewModel.trainees.collectAsState()
-
+    val progress by viewModel.allProgress.collectAsState(initial = emptyList())
+    
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
             .padding(16.dp)
     ) {
         Text(
-            text = "Gym Progress",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = DeepBlue,
-            modifier = Modifier.padding(bottom = 16.dp)
+            text = "Trainee Progress",
+            style = MaterialTheme.typography.headlineMedium
         )
-
-        Text(
-            text = "Daily Progress",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
         LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            items(trainees) { trainee ->
-                ProgressCard(trainee)
+            items(progress) { traineeProgress ->
+                TraineeProgressItem(
+                    progress = traineeProgress,
+                    onUpdate = { viewModel.updateProgress(it) }
+                )
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProgressCard(trainee: TraineeProgress) {
+fun TraineeProgressItem(
+    progress: TraineeProgress,
+    onUpdate: (TraineeProgress) -> Unit
+) {
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(70.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = LightBlue
-        )
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
-            Column {
-                Text(
-                    text = trainee.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.Black
-                )
-                Text(
-                    text = "${trainee.completedWorkouts}/${trainee.totalWorkouts} workouts completed",
-                    fontSize = 12.sp,
-                    color = Color.Gray
-                )
-            }
-
             Text(
-                text = "${trainee.progressPercentage}%",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                color = DeepBlue
+                text = "Trainee ID: ${progress.traineeId}",
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Completed Workouts: ${progress.completedWorkouts}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Total Workouts: ${progress.totalWorkouts}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            Text(
+                text = "Progress: ${progress.progressPercentage}%",
+                style = MaterialTheme.typography.bodyLarge
             )
         }
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun ProgressCardPreview() {
-    GymManagementAppTheme {
-        ProgressCard(
-            trainee = TraineeProgress(
-                id = 1,
-                name = "Abel Melaku",
-                email = "abel@example.com",
-                completedWorkouts = 3,
-                totalWorkouts = 5
-            )
-        )
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 640)
+@Preview(showBackground = true)
 @Composable
 fun AdminProgressScreenPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            AdminProgressScreen(
-                viewModel = AdminProgressViewModel()
+    val previewRepository = object : TraineeProgressRepository {
+        override fun getAllProgress(): Flow<List<TraineeProgress>> = flowOf(
+            listOf(
+                TraineeProgress(
+                    id = 1,
+                    traineeId = "1",
+                    completedWorkouts = 3,
+                    totalWorkouts = 5
+                ),
+                TraineeProgress(
+                    id = 2,
+                    traineeId = "2",
+                    completedWorkouts = 2,
+                    totalWorkouts = 5
+                ),
+                TraineeProgress(
+                    id = 3,
+                    traineeId = "3",
+                    completedWorkouts = 4,
+                    totalWorkouts = 5
+                )
             )
-        }
+        )
+        override suspend fun getProgressById(id: Int): TraineeProgress? = null
+        override fun getProgressByTraineeId(traineeId: String): Flow<List<TraineeProgress>> = flowOf(emptyList())
+        override suspend fun insertProgress(progress: TraineeProgress) {}
+        override suspend fun updateProgress(progress: TraineeProgress) {}
+        override suspend fun deleteProgress(progress: TraineeProgress) {}
+    }
+
+    GymManagementAppTheme {
+        AdminProgressScreen(
+            viewModel = AdminProgressViewModel(previewRepository)
+        )
     }
 } 

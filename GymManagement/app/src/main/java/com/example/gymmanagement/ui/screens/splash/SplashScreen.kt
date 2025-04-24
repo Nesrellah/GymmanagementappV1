@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -30,7 +29,6 @@ import androidx.navigation.NavController
 import com.example.gymmanagement.R
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
-import kotlinx.coroutines.delay
 
 @Composable
 fun WaveBackground(content: @Composable () -> Unit) {
@@ -150,9 +148,7 @@ fun ContactUsSection() {
 }
 
 @Composable
-fun SplashScreen(
-    onNavigateToLogin: () -> Unit
-) {
+fun SplashScreen(navController: NavController) {
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -175,7 +171,7 @@ fun SplashScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .height(120.dp),  // Reduced height
+                    .height(120.dp),
                 contentScale = ContentScale.Crop
             )
 
@@ -189,7 +185,11 @@ fun SplashScreen(
             ) {
                 // Login Button
                 Button(
-                    onClick = { onNavigateToLogin() },
+                    onClick = { 
+                        navController.navigate(AppRoutes.LOGIN) {
+                            launchSingleTop = true
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp),
@@ -213,7 +213,11 @@ fun SplashScreen(
 
                 // Register Button - White background with blue border
                 OutlinedButton(
-                    onClick = { onNavigateToLogin() },
+                    onClick = { 
+                        navController.navigate(AppRoutes.REGISTER) {
+                            launchSingleTop = true
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(48.dp)

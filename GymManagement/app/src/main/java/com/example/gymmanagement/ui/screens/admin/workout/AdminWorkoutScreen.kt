@@ -1,6 +1,8 @@
 package com.example.gymmanagement.ui.screens.admin.workout
 
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -21,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
@@ -30,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.gymmanagement.data.model.Workout
 import com.example.gymmanagement.viewmodel.AdminWorkoutViewModel
 import com.example.gymmanagement.utils.rememberImagePicker
@@ -50,6 +54,7 @@ fun AdminWorkoutScreen(
     onNavigateToEvents: () -> Unit,
     onNavigateToProgress: () -> Unit
 ) {
+    var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedWorkout by remember { mutableStateOf<Workout?>(null) }
     val viewModel: AdminWorkoutViewModel = viewModel()
@@ -119,7 +124,7 @@ fun AdminWorkoutScreen(
 
             WorkoutForm(
                 onWorkoutCreated = { workout ->
-                    viewModel.addWorkout(workout)
+                    viewModel.insertWorkout(workout)
                 }
             )
 
@@ -131,11 +136,11 @@ fun AdminWorkoutScreen(
                 items(workouts) { workout ->
                     WorkoutCard(
                         workout = workout,
-                        onEditClick = {
+                        onEdit = {
                             selectedWorkout = workout
                             showEditDialog = true
                         },
-                        onDeleteClick = {
+                        onDelete = {
                             viewModel.deleteWorkout(workout)
                         }
                     )
@@ -144,11 +149,40 @@ fun AdminWorkoutScreen(
         }
     }
 
-    if (showEditDialog) {
-        EditWorkoutDialog(
+    if (showAddDialog) {
+        WorkoutDialog(
+            onDismiss = { showAddDialog = false },
+            onSave = { eventTitle, traineeId, sets, repsOrSecs, restTime, imageUri ->
+                val imagePath = imageUri?.let { viewModel.handleImageSelection(it) }
+                val workout = Workout(
+                    id = 0,
+                    eventTitle = eventTitle,
+                    traineeId = traineeId,
+                    sets = sets,
+                    repsOrSecs = repsOrSecs,
+                    restTime = restTime,
+                    imageUri = imagePath
+                )
+                viewModel.insertWorkout(workout)
+                showAddDialog = false
+            }
+        )
+    }
+
+    if (showEditDialog && selectedWorkout != null) {
+        WorkoutDialog(
             workout = selectedWorkout,
-            onDismissRequest = { showEditDialog = false },
-            onConfirm = { updatedWorkout ->
+            onDismiss = { showEditDialog = false },
+            onSave = { eventTitle, traineeId, sets, repsOrSecs, restTime, imageUri ->
+                val imagePath = imageUri?.let { viewModel.handleImageSelection(it) }
+                val updatedWorkout = selectedWorkout!!.copy(
+                    eventTitle = eventTitle,
+                    traineeId = traineeId,
+                    sets = sets,
+                    repsOrSecs = repsOrSecs,
+                    restTime = restTime,
+                    imageUri = imagePath ?: selectedWorkout!!.imageUri
+                )
                 viewModel.updateWorkout(updatedWorkout)
                 showEditDialog = false
             }
@@ -231,7 +265,7 @@ fun WorkoutForm(
         OutlinedTextField(
             value = eventTitle,
             onValueChange = { eventTitle = it },
-            label = { Text("Event title", fontSize = 12.sp) },
+            label = { Text("Workout title", fontSize = 12.sp) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(4.dp),
             colors = OutlinedTextFieldDefaults.colors(
@@ -274,7 +308,7 @@ fun WorkoutForm(
         OutlinedTextField(
             value = repsOrSecs,
             onValueChange = { repsOrSecs = it },
-            label = { Text("Reps/ sec", fontSize = 12.sp) },
+            label = { Text("Reps/Secs", fontSize = 12.sp) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(4.dp),
@@ -289,7 +323,7 @@ fun WorkoutForm(
         OutlinedTextField(
             value = restTime,
             onValueChange = { restTime = it },
-            label = { Text("Rest time", fontSize = 12.sp) },
+            label = { Text("Rest time (seconds)", fontSize = 12.sp) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(4.dp),
@@ -304,6 +338,7 @@ fun WorkoutForm(
         Button(
             onClick = {
                 val workout = Workout(
+                    id = 0,
                     eventTitle = eventTitle,
                     traineeId = traineeId,
                     sets = sets.toIntOrNull() ?: 0,
@@ -356,8 +391,8 @@ fun WorkoutFormPreview() {
 @Composable
 fun WorkoutCard(
     workout: Workout,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -368,7 +403,10 @@ fun WorkoutCard(
         Box {
             if (workout.imageUri != null) {
                 AsyncImage(
-                    model = workout.imageUri,
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(workout.imageUri)
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -410,7 +448,7 @@ fun WorkoutCard(
                         modifier = Modifier.padding(start = 8.dp)
                     ) {
                         IconButton(
-                            onClick = onEditClick,
+                            onClick = onEdit,
                             modifier = Modifier
                                 .size(32.dp)
                                 .background(Color.White, RoundedCornerShape(4.dp))
@@ -426,7 +464,7 @@ fun WorkoutCard(
                         Spacer(modifier = Modifier.width(8.dp))
 
                         IconButton(
-                            onClick = onDeleteClick,
+                            onClick = onDelete,
                             modifier = Modifier
                                 .size(32.dp)
                                 .background(Color.White, RoundedCornerShape(4.dp))
@@ -490,10 +528,10 @@ fun WorkoutCardPreview() {
                     sets = 3,
                     repsOrSecs = 15,
                     restTime = 30,
-                    imageUri = null
+                    imageUri = ""
                 ),
-                onEditClick = {},
-                onDeleteClick = {}
+                onEdit = {},
+                onDelete = {}
             )
         }
     }
@@ -501,238 +539,121 @@ fun WorkoutCardPreview() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditWorkoutDialog(
-    workout: Workout?,
-    onDismissRequest: () -> Unit,
-    onConfirm: (Workout) -> Unit
+fun WorkoutDialog(
+    workout: Workout? = null,
+    onDismiss: () -> Unit,
+    onSave: (String, String, Int, Int, Int, Uri?) -> Unit
 ) {
-    Dialog(onDismissRequest = onDismissRequest) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(8.dp),
-            color = Color.White
-        ) {
+    var eventTitle by remember { mutableStateOf(workout?.eventTitle ?: "") }
+    var traineeId by remember { mutableStateOf(workout?.traineeId ?: "") }
+    var sets by remember { mutableStateOf(workout?.sets?.toString() ?: "") }
+    var repsOrSecs by remember { mutableStateOf(workout?.repsOrSecs?.toString() ?: "") }
+    var restTime by remember { mutableStateOf(workout?.restTime?.toString() ?: "") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        imageUri = uri
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (workout == null) "Add Workout" else "Edit Workout") },
+        text = {
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
                     .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Edit Workout",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
-
-                var eventTitle by remember { mutableStateOf(workout?.eventTitle ?: "") }
-                var traineeId by remember { mutableStateOf(workout?.traineeId ?: "") }
-                var sets by remember { mutableStateOf(workout?.sets?.toString() ?: "") }
-                var repsOrSecs by remember { mutableStateOf(workout?.repsOrSecs?.toString() ?: "") }
-                var restTime by remember { mutableStateOf(workout?.restTime?.toString() ?: "") }
-                var imageUri by remember { mutableStateOf<Uri?>(workout?.imageUri?.let { Uri.parse(it) }) }
-
-                val imagePicker = rememberImagePicker { uri ->
-                    imageUri = uri
-                }
-
-                // Image picker
-                Card(
+                // Image Selection
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp)
-                        .clickable { imagePicker.launch("image/*") },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightBlue)
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(Color(0xFFE1EBF5))
+                        .clickable { imagePickerLauncher.launch("image/*") },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (imageUri != null) {
-                            AsyncImage(
-                                model = imageUri,
-                                contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
-                        } else {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Add Image",
-                                    tint = DeepBlue,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Text(
-                                    text = "Tap to add an image",
-                                    color = DeepBlue,
-                                    fontSize = 12.sp
-                                )
-                            }
-                        }
+                    if (imageUri != null) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(imageUri)
+                                .crossfade(true)
+                                .build(),
+                            contentDescription = "Selected Image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text("Click to select image")
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Form fields
+                // Input Fields
                 OutlinedTextField(
                     value = eventTitle,
                     onValueChange = { eventTitle = it },
-                    label = { Text("Event title", fontSize = 12.sp) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = LightBlue,
-                        focusedBorderColor = DeepBlue
-                    )
+                    label = { Text("Workout Title") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = traineeId,
                     onValueChange = { traineeId = it },
-                    label = { Text("Trainee Id", fontSize = 12.sp) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = LightBlue,
-                        focusedBorderColor = DeepBlue
-                    )
+                    label = { Text("Trainee ID") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = sets,
                     onValueChange = { sets = it },
-                    label = { Text("Sets", fontSize = 12.sp) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = LightBlue,
-                        focusedBorderColor = DeepBlue
-                    )
+                    label = { Text("Sets") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = repsOrSecs,
                     onValueChange = { repsOrSecs = it },
-                    label = { Text("Reps/ sec", fontSize = 12.sp) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = LightBlue,
-                        focusedBorderColor = DeepBlue
-                    )
+                    label = { Text("Reps/Secs") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 OutlinedTextField(
                     value = restTime,
                     onValueChange = { restTime = it },
-                    label = { Text("Rest time", fontSize = 12.sp) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(4.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        unfocusedBorderColor = LightBlue,
-                        focusedBorderColor = DeepBlue
-                    )
+                    label = { Text("Rest Time (seconds)") },
+                    modifier = Modifier.fillMaxWidth()
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Action buttons
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    OutlinedButton(
-                        onClick = onDismissRequest,
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp),
-                        shape = RoundedCornerShape(4.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.Black
-                        )
-                    ) {
-                        Text("Cancel", fontSize = 12.sp)
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = {
-                            workout?.id?.let { id ->
-                                onConfirm(
-                                    Workout(
-                                        id = id,
-                                        eventTitle = eventTitle,
-                                        traineeId = traineeId,
-                                        sets = sets.toIntOrNull() ?: 0,
-                                        repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
-                                        restTime = restTime.toIntOrNull() ?: 0,
-                                        imageUri = imageUri?.toString()
-                                    )
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Red,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text("Delete", fontSize = 12.sp)
-                    }
-
-                    Spacer(modifier = Modifier.width(8.dp))
-
-                    Button(
-                        onClick = {
-                            workout?.id?.let { id ->
-                                onConfirm(
-                                    Workout(
-                                        id = id,
-                                        eventTitle = eventTitle,
-                                        traineeId = traineeId,
-                                        sets = sets.toIntOrNull() ?: 0,
-                                        repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
-                                        restTime = restTime.toIntOrNull() ?: 0,
-                                        imageUri = imageUri?.toString()
-                                    )
-                                )
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(40.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DeepBlue,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(4.dp)
-                    ) {
-                        Text("Update", fontSize = 12.sp)
-                    }
-                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onSave(
+                        eventTitle,
+                        traineeId,
+                        sets.toIntOrNull() ?: 0,
+                        repsOrSecs.toIntOrNull() ?: 0,
+                        restTime.toIntOrNull() ?: 0,
+                        imageUri
+                    )
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF3700B3)
+                )
+            ) {
+                Text(if (workout == null) "Create" else "Update")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
             }
         }
-    }
+    )
 }
 
 @Preview(showBackground = true, widthDp = 360)
@@ -744,7 +665,7 @@ fun EditWorkoutDialogPreview() {
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.5f))
         ) {
-            EditWorkoutDialog(
+            WorkoutDialog(
                 workout = Workout(
                     id = 1,
                     eventTitle = "Push ups",
@@ -752,10 +673,12 @@ fun EditWorkoutDialogPreview() {
                     sets = 3,
                     repsOrSecs = 15,
                     restTime = 30,
-                    imageUri = null
+                    imageUri = ""
                 ),
-                onDismissRequest = {},
-                onConfirm = {}
+                onDismiss = {},
+                onSave = { eventTitle, traineeId, sets, repsOrSecs, restTime, imageUri -> 
+                    // Preview doesn't need to do anything
+                }
             )
         }
     }
