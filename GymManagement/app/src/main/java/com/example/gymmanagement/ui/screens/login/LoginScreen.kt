@@ -30,6 +30,8 @@ import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
 import com.example.gymmanagement.GymManagementApp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +41,9 @@ fun LoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val app = context.applicationContext as GymManagementApp
     val authViewModel: AuthViewModel = viewModel(
@@ -47,16 +52,16 @@ fun LoginScreen(
 
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
+    val loginError by authViewModel.loginError.collectAsState()
 
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) {
-            currentUser?.let { user ->
-                Toast.makeText(context, "Welcome ${user.name}", Toast.LENGTH_SHORT).show()
-                if (user.role == "admin") {
-                    navController.navigate(AppRoutes.ADMIN_WORKOUT)
-                } else {
-                    navController.navigate(AppRoutes.MEMBER_WORKOUT)
-                }
+    LaunchedEffect(isLoggedIn, currentUser) {
+        if (isLoggedIn && currentUser != null) {
+            val isAdmin = currentUser?.role == "admin"
+            Toast.makeText(context, "Welcome ${currentUser?.name}", Toast.LENGTH_SHORT).show()
+            delay(500) // Small delay for the toast to be visible
+            val route = if (isAdmin) AppRoutes.ADMIN_WORKOUT else AppRoutes.MEMBER_WORKOUT
+            navController.navigate(route) {
+                popUpTo(AppRoutes.LOGIN) { inclusive = true }
             }
         }
     }
@@ -66,11 +71,11 @@ fun LoginScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Back button and Image section
+        // Image section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(200.dp)
+                .height(180.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.gym_logo),
@@ -79,7 +84,6 @@ fun LoginScreen(
                 contentScale = ContentScale.Crop
             )
 
-            // Back button
             IconButton(
                 onClick = { navController.navigateUp() },
                 modifier = Modifier.padding(16.dp)
@@ -115,15 +119,26 @@ fun LoginScreen(
                 color = Color.Gray
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Error message
+            loginError?.let { error ->
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
 
             // Email field
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
+                label = { Text("Email") },
                 placeholder = { Text("Enter your Email") },
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Blue,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                 ),
@@ -138,10 +153,11 @@ fun LoginScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                placeholder = { Text("Create Password") },
+                label = { Text("Password") },
+                placeholder = { Text("Enter Password") },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                colors = TextFieldDefaults.outlinedTextFieldColors(
+                colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Blue,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                 ),
@@ -150,11 +166,12 @@ fun LoginScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Login button
             Button(
                 onClick = {
+                    isLoading = true
                     authViewModel.login(email, password)
                 },
                 modifier = Modifier
@@ -165,15 +182,20 @@ fun LoginScreen(
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(4.dp),
-                elevation = ButtonDefaults.buttonElevation(
-                    defaultElevation = 0.dp
-                )
+                enabled = !isLoading
             ) {
-                Text(
-                    text = "Login",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Login",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -188,18 +210,23 @@ fun LoginScreen(
                     color = Color.Gray,
                     fontSize = 14.sp
                 )
-                TextButton(
-                    onClick = { navController.navigate(AppRoutes.REGISTER) },
-                    contentPadding = PaddingValues(0.dp)
-                ) {
-                    Text(
-                        text = "Register",
-                        color = Blue,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
-                    )
-                }
+                Text(
+                    text = "Register",
+                    color = Blue,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 14.sp,
+                    modifier = Modifier.clickable { 
+                        navController.navigate(AppRoutes.REGISTER)
+                    }
+                )
             }
+        }
+    }
+
+    // Reset loading state when login error occurs
+    LaunchedEffect(loginError) {
+        if (loginError != null) {
+            isLoading = false
         }
     }
 }

@@ -161,11 +161,11 @@ fun SplashScreen(navController: NavController) {
         ) {
             HeaderWithLogo()
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             ContactUsSection()
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             // Gym Equipment Image
             Image(
@@ -178,7 +178,7 @@ fun SplashScreen(navController: NavController) {
                 contentScale = ContentScale.Crop
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Buttons at the bottom
             Column(
@@ -188,7 +188,7 @@ fun SplashScreen(navController: NavController) {
             ) {
                 // Login Button
                 Button(
-                    onClick = { 
+                    onClick = {
                         navController.navigate(AppRoutes.LOGIN) {
                             // Clear back stack up to splash screen
                             popUpTo(AppRoutes.SPLASH) { inclusive = false }
@@ -217,7 +217,7 @@ fun SplashScreen(navController: NavController) {
 
                 // Register Button - White background with blue border
                 OutlinedButton(
-                    onClick = { 
+                    onClick = {
                         navController.navigate(AppRoutes.REGISTER) {
                             // Clear back stack up to splash screen
                             popUpTo(AppRoutes.SPLASH) { inclusive = false }
@@ -225,7 +225,7 @@ fun SplashScreen(navController: NavController) {
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(40.dp)
                         .background(Color.White, RoundedCornerShape(4.dp)),
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = Blue,

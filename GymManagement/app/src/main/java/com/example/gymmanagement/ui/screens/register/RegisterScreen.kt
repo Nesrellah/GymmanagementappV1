@@ -6,11 +6,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,6 +28,8 @@ import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
 import com.example.gymmanagement.GymManagementApp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,11 +41,17 @@ fun RegisterScreen(navController: NavController) {
     var age by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
+    
+    val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val app = context.applicationContext as GymManagementApp
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModel.Factory(app.userRepository)
     )
+    
+    val registerError by authViewModel.registerError.collectAsState()
+    val scrollState = rememberScrollState()
 
     Box(
         modifier = Modifier
@@ -54,24 +61,10 @@ fun RegisterScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.Top
+                .padding(top = 32.dp, bottom = 24.dp)
         ) {
-            // Back Button
-            IconButton(
-                onClick = { navController.navigateUp() },
-                modifier = Modifier.padding(top = 8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.Black
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Profile Icon
             Icon(
                 imageVector = Icons.Default.Person,
@@ -82,15 +75,15 @@ fun RegisterScreen(navController: NavController) {
                 tint = Blue
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Title
             Text(
                 text = "Create Account",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.Black,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 16.dp)
             )
 
             Text(
@@ -99,65 +92,127 @@ fun RegisterScreen(navController: NavController) {
                 color = Color.Gray,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
-                    .padding(top = 4.dp)
+                    .padding(top = 4.dp, bottom = 24.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // Error message
+            registerError?.let { error ->
+                Text(
+                    text = error,
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
             // Input Fields
-            InputField(
+            OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
-                label = "Name",
-                placeholder = "Enter your full Name"
+                label = { Text("Name") },
+                placeholder = { Text("Enter your full Name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
-            InputField(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = "Email",
-                placeholder = "Enter your Email",
-                keyboardType = KeyboardType.Email
+                label = { Text("Email") },
+                placeholder = { Text("Enter your Email") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
-            InputField(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = "Password",
-                placeholder = "Create Password",
-                isPassword = true
+                label = { Text("Password") },
+                placeholder = { Text("Create Password") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
-            InputField(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
-                label = "Confirm Password",
-                placeholder = "Confirm your password",
-                isPassword = true
+                label = { Text("Confirm Password") },
+                placeholder = { Text("Confirm your password") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
-            InputField(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = age,
                 onValueChange = { age = it },
-                label = "Age",
-                placeholder = "Enter your Age",
-                keyboardType = KeyboardType.Number
+                label = { Text("Age") },
+                placeholder = { Text("Enter your Age") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
-            InputField(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = height,
                 onValueChange = { height = it },
-                label = "Height (cm)",
-                placeholder = "Enter your height in cm",
-                keyboardType = KeyboardType.Decimal
+                label = { Text("Height (cm)") },
+                placeholder = { Text("Enter your height in cm") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
-            InputField(
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
                 value = weight,
                 onValueChange = { weight = it },
-                label = "Weight(kg)",
-                placeholder = "Enter your weight in kg",
-                keyboardType = KeyboardType.Decimal
+                label = { Text("Weight(kg)") },
+                placeholder = { Text("Enter your weight in kg") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Blue,
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                )
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -165,23 +220,27 @@ fun RegisterScreen(navController: NavController) {
             // Register Button
             Button(
                 onClick = {
-                    if (password != confirmPassword) {
-                        Toast.makeText(context, "Passwords do not match", Toast.LENGTH_SHORT).show()
-                        return@Button
-                    }
-
+                    isLoading = true
                     authViewModel.registerUser(
                         name = name,
                         email = email,
                         password = password,
-                        age = age.toIntOrNull() ?: 0,
-                        height = height.toFloatOrNull() ?: 0f,
-                        weight = weight.toFloatOrNull() ?: 0f,
+                        age = age,
+                        height = height,
+                        weight = weight,
                         role = "member"
                     ) { success, message ->
-                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         if (success) {
-                            navController.navigate(AppRoutes.LOGIN)
+                            Toast.makeText(context, "Registration successful! Redirecting to login...", Toast.LENGTH_SHORT).show()
+                            scope.launch {
+                                delay(1500) // 1.5 seconds delay
+                                navController.navigate(AppRoutes.LOGIN) {
+                                    popUpTo(AppRoutes.REGISTER) { inclusive = true }
+                                }
+                            }
+                        } else {
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                            isLoading = false
                         }
                     }
                 },
@@ -189,23 +248,35 @@ fun RegisterScreen(navController: NavController) {
                     .fillMaxWidth()
                     .height(48.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                shape = RoundedCornerShape(4.dp)
+                shape = RoundedCornerShape(4.dp),
+                enabled = !isLoading
             ) {
-                Text("Register", fontSize = 16.sp)
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text("Register", fontSize = 16.sp)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             // Login Link
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 24.dp),
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "Already have an account? Login",
+                    text = "Already have an account? ",
                     color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                Text(
+                    text = "Login",
+                    color = Blue,
+                    fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     modifier = Modifier.clickable { 
                         navController.navigate(AppRoutes.LOGIN)
@@ -213,38 +284,5 @@ fun RegisterScreen(navController: NavController) {
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun InputField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    placeholder: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
-) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Text(
-            text = label,
-            fontSize = 14.sp,
-            color = Color.Black,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            placeholder = { Text(placeholder, color = Color.Gray) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = Color.LightGray,
-                focusedBorderColor = Blue
-            ),
-            visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-            singleLine = true
-        )
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
