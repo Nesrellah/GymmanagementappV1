@@ -11,14 +11,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.gymmanagement.R
 import com.example.gymmanagement.data.model.MemberWorkout
 import com.example.gymmanagement.data.repository.MemberWorkoutRepository
 import com.example.gymmanagement.data.repository.MemberWorkoutRepositoryImpl
@@ -26,6 +27,10 @@ import com.example.gymmanagement.data.dao.MemberWorkoutDao
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import com.example.gymmanagement.viewmodel.MemberWorkoutViewModel
 import kotlinx.coroutines.flow.flowOf
+import androidx.compose.foundation.Image
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 
 @Composable
 fun MemberWorkoutScreen(
@@ -37,57 +42,94 @@ fun MemberWorkoutScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color.White)
     ) {
-        Text(
-            text = "My Workouts",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        // Top App Bar with "Daily workout"
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF0000CD))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Daily workout",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
 
+        // Progress Section
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 16.dp)
+                .padding(16.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Column(
                 modifier = Modifier
-                    .padding(16.dp)
                     .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Text(
-                    text = "Progress",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Today's Progress",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        text = "${(progress * 100).toInt()}%",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(0xFF0000CD)
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 LinearProgressIndicator(
                     progress = progress,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "${(progress * 100).toInt()}% Complete",
-                    style = MaterialTheme.typography.bodyMedium
+                        .clip(RoundedCornerShape(4.dp)),
+                    color = Color(0xFF0000CD),
+                    trackColor = Color(0xFFE0E0E0)
                 )
             }
         }
 
+        // "Your Workouts" Section
+        Text(
+            text = "Your Workouts",
+            modifier = Modifier.padding(horizontal = 16.dp),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF0000CD)
+        )
+
         if (workouts.isEmpty()) {
             Box(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "No workouts assigned yet",
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "No workouts assigned yet.\nCheck back later for your personalized workout plan!",
+                    textAlign = TextAlign.Center,
+                    fontSize = 16.sp,
+                    color = Color.Gray
                 )
             }
         } else {
+            // Workouts List
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(workouts) { workout ->
                     WorkoutCard(
@@ -106,59 +148,80 @@ fun WorkoutCard(
     onToggleCompletion: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFFE1EBF5)
-        )
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(200.dp),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background Image
+            Image(
+                painter = painterResource(id = R.drawable.gym_logo),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            // Overlay
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.4f))
+            )
+
+            // Content
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(
-                    text = workout.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Checkbox(
-                    checked = workout.isCompleted,
-                    onCheckedChange = { onToggleCompletion() },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = Color(0xFF4CAF50)
+                // Top Row with Title and Completion Status
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ) {
+                    Text(
+                        text = workout.title,
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
                     )
-                )
+                    if (workout.isCompleted) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Completed",
+                            tint = Color.Green,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+
+                // Bottom Row with Workout Details
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    WorkoutInfo("${workout.sets} sets")
+                    WorkoutInfo("${workout.repsOrSecs} reps")
+                    WorkoutInfo("${workout.restTime}s rest")
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Sets: ${workout.sets}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Reps/Seconds: ${workout.repsOrSecs}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Rest Time: ${workout.restTime} seconds",
-                style = MaterialTheme.typography.bodyMedium
-            )
         }
     }
 }
 
 @Composable
-fun WorkoutInfo(label: String) {
+fun WorkoutInfo(text: String) {
     Surface(
         color = Color.White.copy(alpha = 0.9f),
         shape = RoundedCornerShape(4.dp)
     ) {
         Text(
-            text = label,
+            text = text,
             color = Color.Black,
             fontSize = 14.sp,
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)

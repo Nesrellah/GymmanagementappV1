@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,28 +11,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.AsyncImage
+import com.example.gymmanagement.R
 import com.example.gymmanagement.data.model.EventEntity
-import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import com.example.gymmanagement.viewmodel.MemberEventViewModel
+import androidx.compose.foundation.Image
 
-private val DeepBlue = Color(0xFF0000CD)
-private val LightBlue = Color(0xFFE6E9FD)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemberEventScreen(
-    onNavigateToWorkouts: () -> Unit,
-    onNavigateToProgress: () -> Unit
+    viewModel: MemberEventViewModel
 ) {
-    val viewModel: MemberEventViewModel = viewModel()
     val events by viewModel.upcomingEvents.collectAsState(initial = emptyList())
 
     Column(
@@ -41,61 +35,65 @@ fun MemberEventScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Top Navigation Bar
-        Row(
+        // Top App Bar with "Gym Events"
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(Color(0xFF0000CD))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Gym Events",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        // Upcoming Events Section
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             Text(
                 text = "Upcoming Events",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = DeepBlue
+                color = Color(0xFF0000CD)
             )
             
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                IconButton(
-                    onClick = onNavigateToWorkouts,
-                    modifier = Modifier
-                        .background(LightBlue, CircleShape)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Workouts",
-                        tint = DeepBlue
-                    )
-                }
-                
-                IconButton(
-                    onClick = onNavigateToProgress,
-                    modifier = Modifier
-                        .background(LightBlue, CircleShape)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Progress",
-                        tint = DeepBlue
-                    )
-                }
-            }
-        }
+            Text(
+                text = "Join us for these exciting events",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier.padding(top = 4.dp)
+            )
 
-        // Events List
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(events) { event ->
-                EventCard(event = event)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            if (events.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(32.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No upcoming events at the moment.\nCheck back later for new events!",
+                        textAlign = TextAlign.Center,
+                        fontSize = 16.sp,
+                        color = Color.Gray
+                    )
+                }
+            } else {
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(events) { event ->
+                        EventCard(event = event)
+                    }
+                }
             }
         }
     }
@@ -106,20 +104,18 @@ fun EventCard(event: EventEntity) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .height(120.dp),
+        shape = RoundedCornerShape(12.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
-        Box {
-            // Event Image
-            if (event.imageUri != null) {
-                AsyncImage(
-                    model = event.imageUri,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
-            }
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background Image
+            Image(
+                painter = painterResource(id = R.drawable.gym_logo),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
 
             // Overlay
             Box(
@@ -135,95 +131,73 @@ fun EventCard(event: EventEntity) {
                     .padding(16.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Title
+                // Event Title
                 Text(
                     text = event.title,
                     color = Color.White,
-                    fontSize = 24.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
 
                 // Event Details
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    EventDetailRow(
-                        icon = Icons.Default.DateRange,
-                        text = event.date
-                    )
-                    EventDetailRow(
-                        icon = Icons.Default.Person,
-                        text = event.time
-                    )
-                    EventDetailRow(
-                        icon = Icons.Default.LocationOn,
-                        text = event.location
-                    )
+                    // Date
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Date",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = event.date,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    // Time
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = "Time",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = event.time,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
+
+                    // Location
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Location",
+                            tint = Color.White,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = event.location,
+                            color = Color.White,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun EventDetailRow(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    text: String
-) {
-    Row(
-        modifier = Modifier
-            .background(
-                color = Color.White.copy(alpha = 0.8f),
-                shape = RoundedCornerShape(20.dp)
-            )
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = DeepBlue,
-            modifier = Modifier.size(16.dp)
-        )
-        Text(
-            text = text,
-            color = Color.Black,
-            fontSize = 14.sp
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun MemberEventScreenPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            MemberEventScreen({}, {})
-        }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EventCardPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            EventCard(
-                event = EventEntity(
-                    id = 1,
-                    title = "Fitness Workshop",
-                    date = "2024-03-15",
-                    time = "10:00 AM",
-                    location = "Main Gym"
-                )
-            )
         }
     }
 } 
