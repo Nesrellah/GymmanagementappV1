@@ -10,6 +10,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,265 +25,229 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.example.gymmanagement.GymManagementApp
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
-import com.example.gymmanagement.GymManagementApp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController) {
+fun RegisterScreen(
+    navController: NavController,
+    viewModel: AuthViewModel
+) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var weight by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val app = context.applicationContext as GymManagementApp
-    val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModel.Factory(app.userRepository)
-    )
-    
-    val registerError by authViewModel.registerError.collectAsState()
-    val scrollState = rememberScrollState()
 
-    Box(
+    val registerError by viewModel.registerError.collectAsState()
+    var showError by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp)
     ) {
-        Column(
+        // Top Bar
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = 24.dp)
-                .padding(top = 32.dp, bottom = 24.dp)
+                .fillMaxWidth()
+                .padding(bottom = 24.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            // Profile Icon
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile",
-                modifier = Modifier
-                    .size(64.dp)
-                    .align(Alignment.CenterHorizontally),
-                tint = Blue
-            )
-
-            // Title
-            Text(
-                text = "Create Account",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 16.dp)
-            )
-
-            Text(
-                text = "Join our fitness community",
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 4.dp, bottom = 24.dp)
-            )
-
-            // Error message
-            registerError?.let { error ->
-                Text(
-                    text = error,
-                    color = Color.Red,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 8.dp)
+            IconButton(onClick = { navController.navigateUp() }) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back"
                 )
             }
-
-            // Input Fields
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                label = { Text("Name") },
-                placeholder = { Text("Enter your full Name") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+            Text(
+                text = "Register",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        // Registration Form
+        OutlinedTextField(
+            value = name,
+            onValueChange = { 
+                name = it
+                showError = false
+            },
+            label = { Text("Name") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            isError = showError && viewModel.validateName(name) != null,
+            supportingText = {
+                if (showError && viewModel.validateName(name) != null) {
+                    Text(
+                        text = viewModel.validateName(name) ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
 
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email") },
-                placeholder = { Text("Enter your Email") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
+        OutlinedTextField(
+            value = email,
+            onValueChange = { 
+                email = it
+                showError = false
+            },
+            label = { Text("Email") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            isError = showError && viewModel.validateEmail(email) != null,
+            supportingText = {
+                if (showError && viewModel.validateEmail(email) != null) {
+                    Text(
+                        text = viewModel.validateEmail(email) ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { 
+                password = it
+                showError = false
+            },
+            label = { Text("Password") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            isError = showError && viewModel.validatePassword(password) != null,
+            supportingText = {
+                if (showError && viewModel.validatePassword(password) != null) {
+                    Text(
+                        text = viewModel.validatePassword(password) ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+
+        OutlinedTextField(
+            value = age,
+            onValueChange = { 
+                age = it
+                showError = false
+            },
+            label = { Text("Age") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            isError = showError && viewModel.validateAge(age) != null,
+            supportingText = {
+                if (showError && viewModel.validateAge(age) != null) {
+                    Text(
+                        text = viewModel.validateAge(age) ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+
+        OutlinedTextField(
+            value = height,
+            onValueChange = { 
+                height = it
+                showError = false
+            },
+            label = { Text("Height (cm)") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp),
+            isError = showError && viewModel.validateHeight(height) != null,
+            supportingText = {
+                if (showError && viewModel.validateHeight(height) != null) {
+                    Text(
+                        text = viewModel.validateHeight(height) ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+
+        OutlinedTextField(
+            value = weight,
+            onValueChange = { 
+                weight = it
+                showError = false
+            },
+            label = { Text("Weight (kg)") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            isError = showError && viewModel.validateWeight(weight) != null,
+            supportingText = {
+                if (showError && viewModel.validateWeight(weight) != null) {
+                    Text(
+                        text = viewModel.validateWeight(weight) ?: "",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        )
+
+        if (registerError != null) {
+            Text(
+                text = registerError ?: "",
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(bottom = 8.dp)
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                placeholder = { Text("Create Password") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirm Password") },
-                placeholder = { Text("Confirm your password") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = age,
-                onValueChange = { age = it },
-                label = { Text("Age") },
-                placeholder = { Text("Enter your Age") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = height,
-                onValueChange = { height = it },
-                label = { Text("Height (cm)") },
-                placeholder = { Text("Enter your height in cm") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                value = weight,
-                onValueChange = { weight = it },
-                label = { Text("Weight(kg)") },
-                placeholder = { Text("Enter your weight in kg") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
-                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
-                )
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Register Button
-            Button(
-                onClick = {
-                    isLoading = true
-                    authViewModel.registerUser(
+        Button(
+            onClick = {
+                showError = true
+                if (viewModel.validateName(name) == null &&
+                    viewModel.validateEmail(email) == null &&
+                    viewModel.validatePassword(password) == null &&
+                    viewModel.validateAge(age) == null &&
+                    viewModel.validateHeight(height) == null &&
+                    viewModel.validateWeight(weight) == null
+                ) {
+                    viewModel.registerUser(
                         name = name,
                         email = email,
                         password = password,
                         age = age,
                         height = height,
-                        weight = weight,
-                        role = "member"
+                        weight = weight
                     ) { success, message ->
                         if (success) {
-                            Toast.makeText(context, "Registration successful! Redirecting to login...", Toast.LENGTH_SHORT).show()
-                            scope.launch {
-                                delay(1500) // 1.5 seconds delay
-                                navController.navigate(AppRoutes.LOGIN) {
-                                    popUpTo(AppRoutes.REGISTER) { inclusive = true }
-                                }
+                            navController.navigate(AppRoutes.LOGIN) {
+                                popUpTo(AppRoutes.REGISTER) { inclusive = true }
                             }
-                        } else {
-                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                            isLoading = false
                         }
                     }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
-                shape = RoundedCornerShape(4.dp),
-                enabled = !isLoading
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Text("Register", fontSize = 16.sp)
                 }
-            }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp)
+        ) {
+            Text("Register")
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Login Link
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Already have an account? ",
-                    color = Color.Gray,
-                    fontSize = 14.sp
-                )
-                Text(
-                    text = "Login",
-                    color = Blue,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
-                    modifier = Modifier.clickable { 
-                        navController.navigate(AppRoutes.LOGIN)
-                    }
-                )
-            }
+        TextButton(
+            onClick = { navController.navigate(AppRoutes.LOGIN) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Already have an account? Login")
         }
     }
 }

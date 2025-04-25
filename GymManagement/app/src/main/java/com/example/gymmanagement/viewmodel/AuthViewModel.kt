@@ -1,11 +1,8 @@
 package com.example.gymmanagement.viewmodel
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.model.UserEntity
 import com.example.gymmanagement.data.model.UserProfile
 import com.example.gymmanagement.data.repository.UserRepository
@@ -30,6 +27,19 @@ class AuthViewModel(
 
     private val _registerError = MutableStateFlow<String?>(null)
     val registerError: StateFlow<String?> = _registerError
+
+    init {
+        checkLoginState()
+    }
+
+    fun checkLoginState() {
+        viewModelScope.launch {
+            repository.getCurrentUser()?.let { profile ->
+                _currentUser.value = profile
+                _isLoggedIn.value = true
+            }
+        }
+    }
 
     fun validateEmail(email: String): String? {
         if (email.isEmpty()) return "Email is required"
@@ -93,10 +103,10 @@ class AuthViewModel(
             val heightError = validateHeight(height)
             val weightError = validateWeight(weight)
 
-            if (nameError != null || emailError != null || passwordError != null || 
+            if (nameError != null || emailError != null || passwordError != null ||
                 ageError != null || heightError != null || weightError != null) {
                 _registerError.value = listOfNotNull(
-                    nameError, emailError, passwordError, 
+                    nameError, emailError, passwordError,
                     ageError, heightError, weightError
                 ).joinToString("\n")
                 onComplete(false, "Please fix the validation errors")
@@ -131,8 +141,8 @@ class AuthViewModel(
                 email = email,
                 name = name,
                 age = age.toInt(),
-                height = height.toFloat().toInt(),
-                weight = weight.toFloat().toInt(),
+                height = height.toFloat(),
+                weight = weight.toFloat(),
                 bmi = calculateBMI(height.toFloat(), weight.toFloat()),
                 joinDate = date,
                 role = role
@@ -155,10 +165,12 @@ class AuthViewModel(
             }
 
             repository.login(email, password)?.let { user ->
-                _isLoggedIn.value = true
-                _loginError.value = null
                 repository.getUserProfileByEmail(email)?.let { profile ->
                     _currentUser.value = profile
+                    _isLoggedIn.value = true
+                    _loginError.value = null
+                    // Save user session
+                    repository.saveCurrentUser(profile)
                 }
             } ?: run {
                 _loginError.value = "Invalid email or password"
@@ -193,15 +205,18 @@ class AuthViewModel(
     }
 
     fun logout() {
-        _isLoggedIn.value = false
-        _currentUser.value = null
-        _loginError.value = null
-        _registerError.value = null
+        viewModelScope.launch {
+            repository.clearCurrentUser()
+            _isLoggedIn.value = false
+            _currentUser.value = null
+            _loginError.value = null
+            _registerError.value = null
+        }
     }
 
-    private fun calculateBMI(height: Float, weight: Float): Double {
-        val heightM = height / 100
-        return (weight / (heightM * heightM)).toDouble()
+    private fun calculateBMI(height: Float, weight: Float): Float {
+        val heightInMeters = height / 100f
+        return (weight / (heightInMeters * heightInMeters) * 10).toInt() / 10f
     }
 
     class Factory(

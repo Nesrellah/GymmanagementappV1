@@ -13,15 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymmanagement.data.model.UserProfile
-import com.example.gymmanagement.ui.theme.GymManagementAppTheme
-import com.example.gymmanagement.viewmodel.UserProfileViewModel
 import com.example.gymmanagement.viewmodel.MemberProfileViewModel
 
 @Composable
@@ -29,295 +26,284 @@ fun MemberProfileScreen(
     traineeId: String,
     viewModel: MemberProfileViewModel = viewModel()
 ) {
-    var userProfile by remember { mutableStateOf<UserProfile?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
-    var showEditDialog by remember { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
+    val userProfile by viewModel.userProfile.collectAsState()
     
     LaunchedEffect(traineeId) {
-        viewModel.getUserProfile(traineeId.toInt())?.let { profile ->
-            userProfile = profile
-        }
-        isLoading = false
+        viewModel.getUserProfile(traineeId.toInt())
     }
     
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .background(Color.White)
     ) {
-        if (isLoading) {
-            CircularProgressIndicator()
-        } else {
-            userProfile?.let { profile ->
-                DisplayProfileContent(profile)
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Button(
-                    onClick = { showEditDialog = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Edit Profile")
-                }
-            } ?: run {
-                Text(
-                    text = "No profile found",
-                    style = MaterialTheme.typography.bodyLarge
+        // Top App Bar
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF0000CD))
+                .padding(16.dp)
+        ) {
+            Text(
+                text = "Your profile",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        userProfile?.let { profile ->
+            if (!isEditing) {
+                DisplayProfile(
+                    profile = profile,
+                    onEditClick = { isEditing = true }
+                )
+            } else {
+                EditProfile(
+                    profile = profile,
+                    onSave = { updatedProfile ->
+                        viewModel.updateUserProfileWithBMI(
+                            email = updatedProfile.email,
+                            name = updatedProfile.name,
+                            age = updatedProfile.age,
+                            height = updatedProfile.height,
+                            weight = updatedProfile.weight,
+                            phone = updatedProfile.phone,
+                            address = updatedProfile.address,
+                            role = updatedProfile.role
+                        )
+                        isEditing = false
+                    },
+                    onCancel = { isEditing = false }
                 )
             }
         }
     }
-    
-    if (showEditDialog) {
-        userProfile?.let { profile ->
-            AlertDialog(
-                onDismissRequest = { showEditDialog = false },
-                title = { Text("Edit Profile") },
-                text = {
-                    EditProfileContent(
-                        userProfile = profile,
-                        onSave = { name, email, phone, address, role ->
-                            viewModel.updateUserProfile(
-                                email = email,
-                                name = name,
-                                phone = phone,
-                                address = address,
-                                role = role
-                            )
-                            showEditDialog = false
-                        },
-                        onCancel = { showEditDialog = false }
+}
+
+@Composable
+fun DisplayProfile(
+    profile: UserProfile,
+    onEditClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
+    ) {
+        // Profile Icon and Edit Button
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF0000CD)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
+            }
+        }
+
+        // Personal Information Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Personal information",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Medium
                     )
-                },
-                confirmButton = {},
-                dismissButton = {}
-            )
+                    IconButton(onClick = onEditClick) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = Color(0xFF0000CD)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                ProfileField("Name:", profile.name)
+                ProfileField("Email:", profile.email)
+                profile.age?.let { ProfileField("Age:", "$it years") }
+                profile.height?.let { ProfileField("Height:", "$it cm") }
+                profile.weight?.let { ProfileField("Weight:", "$it kg") }
+                profile.bmi?.let { ProfileField("BMI:", String.format("%.1f", it)) }
+                profile.joinDate?.let { ProfileField("Join Date:", it) }
+            }
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditProfileContent(
-    userProfile: UserProfile,
-    onSave: (String, String, String?, String?, String) -> Unit,
+fun EditProfile(
+    profile: UserProfile,
+    onSave: (UserProfile) -> Unit,
     onCancel: () -> Unit
 ) {
-    var name by remember { mutableStateOf(userProfile.name) }
-    var email by remember { mutableStateOf(userProfile.email) }
-    var phone by remember { mutableStateOf(userProfile.phone ?: "") }
-    var address by remember { mutableStateOf(userProfile.address ?: "") }
-    var role by remember { mutableStateOf(userProfile.role) }
+    var name by remember { mutableStateOf(profile.name) }
+    var age by remember { mutableStateOf(profile.age?.toString() ?: "") }
+    var height by remember { mutableStateOf(profile.height?.toString() ?: "") }
+    var weight by remember { mutableStateOf(profile.weight?.toString() ?: "") }
 
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp)
     ) {
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name") },
-            modifier = Modifier.fillMaxWidth()
+        Text(
+            text = "Personal Information",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            modifier = Modifier.padding(bottom = 16.dp)
         )
 
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
-            label = { Text("Address") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Row(
+        Card(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
         ) {
-            OutlinedButton(
-                onClick = onCancel,
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(4.dp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text("Cancel")
-            }
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Name") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF0000CD),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
 
-            Button(
-                onClick = {
-                    if (name.isNotBlank() && email.isNotBlank()) {
-                        onSave(
-                            name,
-                            email,
-                            phone.takeIf { it.isNotBlank() },
-                            address.takeIf { it.isNotBlank() },
-                            role
+                OutlinedTextField(
+                    value = age,
+                    onValueChange = { age = it },
+                    label = { Text("Age") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF0000CD),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+
+                OutlinedTextField(
+                    value = height,
+                    onValueChange = { height = it },
+                    label = { Text("Height(cm)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF0000CD),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = { weight = it },
+                    label = { Text("Weight(kg)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color(0xFF0000CD),
+                        unfocusedBorderColor = Color.Gray
+                    )
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onCancel,
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF0000CD)
+                        ),
+                        border = ButtonDefaults.outlinedButtonBorder.copy(
+                            brush = SolidColor(Color(0xFF0000CD))
                         )
+                    ) {
+                        Text("Cancel")
                     }
-                },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(4.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF3700B3)
-                ),
-                enabled = name.isNotBlank() && email.isNotBlank()
-            ) {
-                Text("Save")
+
+                    Button(
+                        onClick = {
+                            val updatedProfile = profile.copy(
+                                name = name,
+                                age = age.toIntOrNull(),
+                                height = height.toFloatOrNull(),
+                                weight = weight.toFloatOrNull()
+                            )
+                            onSave(updatedProfile)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF0000CD)
+                        )
+                    ) {
+                        Text("Save")
+                    }
+                }
             }
         }
-    }
-}
-
-@Composable
-fun DisplayProfileContent(userProfile: UserProfile) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        ProfileField("Name:", userProfile.name)
-        ProfileField("Email:", userProfile.email)
-        userProfile.age?.let { ProfileField("Age:", "$it years") }
-        userProfile.height?.let { ProfileField("Height:", "$it cm") }
-        userProfile.weight?.let { ProfileField("Weight:", "$it kg") }
-        userProfile.bmi?.let { ProfileField("BMI:", String.format("%.1f", it)) }
-        userProfile.joinDate?.let { ProfileField("Join Date:", it) }
-        ProfileField("Role:", userProfile.role)
     }
 }
 
 @Composable
 fun ProfileField(label: String, value: String) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(
             text = label,
             color = Color.Gray,
-            fontSize = 16.sp
+            fontSize = 14.sp
         )
         Text(
             text = value,
-            fontSize = 16.sp,
+            fontSize = 14.sp,
             fontWeight = FontWeight.Medium
         )
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun MemberProfileScreenPreview() {
-    GymManagementAppTheme {
-        val previewProfile = UserProfile(
-            id = 1,
-            name = "John Doe",
-            email = "john@example.com",
-            phone = "1234567890",
-            address = "123 Main St",
-            role = "member",
-            age = 25,
-            height = 175,
-            weight = 70,
-            bmi = 22.9,
-            joinDate = "2024-02-10"
-        )
-        
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            DisplayProfileContent(previewProfile)
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            EditProfileContent(
-                userProfile = previewProfile,
-                onSave = { _, _, _, _, _ -> },
-                onCancel = {}
-            )
-        }
-    }
+private fun calculateBMI(height: Float?, weight: Float?): Float? {
+    if (height == null || weight == null || height <= 0) return null
+    val heightInMeters = height / 100
+    return weight / (heightInMeters * heightInMeters)
 }
 
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun DisplayProfileContentPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            DisplayProfileContent(
-                userProfile = UserProfile(
-                    email = "blen@example.com",
-                    name = "Blen Alemu",
-                    role = "member",
-                    age = 28,
-                    height = 170,
-                    weight = 60,
-                    bmi = 20.8,
-                    joinDate = "2024-02-10"
-                )
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun EditProfileContentPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            EditProfileContent(
-                userProfile = UserProfile(
-                    email = "blen@example.com",
-                    name = "Blen Alemu",
-                    role = "member",
-                    age = 28,
-                    height = 170,
-                    weight = 60,
-                    bmi = 20.8,
-                    joinDate = "2024-02-10"
-                ),
-                onSave = { _, _, _, _, _ -> },
-                onCancel = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun ProfileFieldPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            Column {
-                ProfileField("Name:", "Blen Alemu")
-                ProfileField("Email:", "blen@example.com")
-                ProfileField("Age:", "28 years")
-                ProfileField("Height:", "170 cm")
-                ProfileField("Weight:", "60 kg")
-                ProfileField("BMI:", "20.8")
-                ProfileField("Join Date:", "2024-02-10")
-                ProfileField("Role:", "member")
-            }
-        }
-    }
-} 

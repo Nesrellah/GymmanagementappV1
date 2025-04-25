@@ -32,6 +32,7 @@ import androidx.navigation.NavController
 import com.example.gymmanagement.R
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
+import com.example.gymmanagement.viewmodel.AuthViewModel
 
 @Composable
 fun WaveBackground(content: @Composable () -> Unit) {
@@ -151,7 +152,10 @@ fun ContactUsSection() {
 }
 
 @Composable
-fun SplashScreen(navController: NavController) {
+fun SplashScreen(
+    navController: NavController,
+    viewModel: AuthViewModel
+) {
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {

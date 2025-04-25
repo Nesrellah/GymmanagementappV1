@@ -7,7 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,20 +73,42 @@ fun MemberEventScreen(
                 modifier = Modifier.padding(top = 4.dp)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
+            // Empty State or Events List
             if (events.isEmpty()) {
-                Box(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(32.dp),
-                    contentAlignment = Alignment.Center
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
                 ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.gym_logo),
+                        contentDescription = "No events",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
                     Text(
-                        text = "No upcoming events at the moment.\nCheck back later for new events!",
+                        text = "No upcoming events yet",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = Color(0xFF0000CD),
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    Text(
+                        text = "Events will appear here once they are added by the admin",
+                        fontSize = 14.sp,
+                        color = Color.Gray,
                         textAlign = TextAlign.Center,
-                        fontSize = 16.sp,
-                        color = Color.Gray
+                        modifier = Modifier.padding(top = 8.dp, start = 32.dp, end = 32.dp)
                     )
                 }
             } else {

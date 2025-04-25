@@ -12,9 +12,10 @@ data class UserProfile(
     val phone: String? = null,
     val address: String? = null,
     val age: Int? = null,
-    val height: Int? = null,
-    val weight: Int? = null,
-    val bmi: Double? = null,
+    val height: Float? = null,
+    val weight: Float? = null,
+    val bmi: Float? = null,
     val role: String,
-    val joinDate: String? = null
+    val joinDate: String? = null,
+    val membershipStatus: String = "active"
 ) 

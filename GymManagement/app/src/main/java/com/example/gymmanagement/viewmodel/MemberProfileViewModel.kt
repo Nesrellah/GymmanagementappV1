@@ -8,8 +8,6 @@ import com.example.gymmanagement.data.repository.UserRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlin.math.pow
-import kotlin.math.round
 
 class MemberProfileViewModel(
     private val repository: UserRepository
@@ -43,25 +41,21 @@ class MemberProfileViewModel(
             }
         }
     }
-    
+
     fun updateUserProfileWithBMI(
         email: String,
         name: String,
         age: Int?,
-        height: Int?,
-        weight: Int?,
+        height: Float?,
+        weight: Float?,
         phone: String? = null,
         address: String? = null,
         role: String = "member" // Default to member
     ) {
         viewModelScope.launch {
             repository.getUserProfileByEmail(email)?.let { existingProfile ->
-                val bmi = if (height != null && weight != null) {
-                    calculateBMI(height, weight)
-                } else {
-                    existingProfile.bmi
-                }
-                
+                val bmi = calculateBMI(height, weight)
+
                 val updatedProfile = existingProfile.copy(
                     name = name,
                     age = age,
@@ -77,11 +71,11 @@ class MemberProfileViewModel(
             }
         }
     }
-    
-    private fun calculateBMI(heightCm: Int, weightKg: Int): Double {
-        val heightM = heightCm / 100.0
-        val bmi = weightKg / (heightM.pow(2))
-        return round(bmi * 10) / 10
+
+    private fun calculateBMI(heightCm: Float?, weightKg: Float?): Float? {
+        if (heightCm == null || weightKg == null || heightCm <= 0) return null
+        val heightM = heightCm / 100f
+        return weightKg / (heightM * heightM)
     }
     
     class Factory(

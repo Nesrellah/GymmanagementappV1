@@ -13,11 +13,21 @@ class GymManagementApp : Application() {
     val userRepository: UserRepository by lazy {
         UserRepositoryImpl(
             userDao = database.userDao(),
-            userProfileDao = database.userProfileDao()
+            userProfileDao = database.userProfileDao(),
+            context = applicationContext
         )
+    }
+
+    companion object {
+        private lateinit var instance: GymManagementApp
+        
+        fun getInstance(): GymManagementApp {
+            return instance
+        }
     }
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
     }
 } 

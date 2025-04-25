@@ -5,29 +5,26 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.gymmanagement.data.dao.*
-import com.example.gymmanagement.data.model.*
+import com.example.gymmanagement.data.model.UserEntity
+import com.example.gymmanagement.data.model.UserProfile
+import com.example.gymmanagement.data.model.MemberWorkout
+import com.example.gymmanagement.data.model.EventEntity
 
 @Database(
     entities = [
         UserEntity::class,
         UserProfile::class,
-        Workout::class,
-        EventEntity::class,
         MemberWorkout::class,
-        MemberEvent::class,
-        TraineeProgress::class
+        EventEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun userDao(): UserDao
     abstract fun userProfileDao(): UserProfileDao
-    abstract fun workoutDao(): WorkoutDao
-    abstract fun eventDao(): EventDao
     abstract fun memberWorkoutDao(): MemberWorkoutDao
-    abstract fun memberEventDao(): MemberEventDao
-    abstract fun traineeProgressDao(): TraineeProgressDao
+    abstract fun eventDao(): EventDao
 
     companion object {
         @Volatile

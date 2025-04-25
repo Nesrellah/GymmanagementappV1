@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,174 +34,160 @@ import com.example.gymmanagement.GymManagementApp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
     navController: NavController,
+    viewModel: AuthViewModel,
     onLoginSuccess: (Boolean) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
-    
-    val scope = rememberCoroutineScope()
-    val context = LocalContext.current
-    val app = context.applicationContext as GymManagementApp
-    val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModel.Factory(app.userRepository)
-    )
+    var showError by remember { mutableStateOf(false) }
+    val loginError by viewModel.loginError.collectAsState()
 
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-    val currentUser by authViewModel.currentUser.collectAsState()
-    val loginError by authViewModel.loginError.collectAsState()
-
-    LaunchedEffect(isLoggedIn, currentUser) {
-        if (isLoggedIn && currentUser != null) {
-            val isAdmin = currentUser?.role == "admin"
-            Toast.makeText(context, "Welcome ${currentUser?.name}", Toast.LENGTH_SHORT).show()
-            delay(500) // Small delay for the toast to be visible
-            val route = if (isAdmin) AppRoutes.ADMIN_WORKOUT else AppRoutes.MEMBER_WORKOUT
-            navController.navigate(route) {
-                popUpTo(AppRoutes.LOGIN) { inclusive = true }
-            }
-        }
-    }
-
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Image section
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(180.dp)
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.gym_logo),
-                contentDescription = "Gym Equipment",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-
-            IconButton(
-                onClick = { navController.navigateUp() },
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back",
-                    tint = Color.White
-                )
-            }
-        }
-
-        // Content section
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 24.dp)
-                .padding(top = 24.dp)
+                .padding(top = 32.dp, bottom = 24.dp)
         ) {
-            // Welcome text
+            // Back Button
+            IconButton(
+                onClick = { navController.navigateUp() },
+                modifier = Modifier.align(Alignment.Start)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowBack,
+                    contentDescription = "Back",
+                    tint = Color.Black
+                )
+            }
+
+            // Profile Icon
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = "Profile",
+                modifier = Modifier
+                    .size(64.dp)
+                    .align(Alignment.CenterHorizontally),
+                tint = Blue
+            )
+
+            // Title
             Text(
                 text = "Welcome Back",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 16.dp)
             )
-
-            Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "Login to your account",
-                fontSize = 16.sp,
-                color = Color.Gray
+                text = "Sign in to continue",
+                fontSize = 14.sp,
+                color = Color.Gray,
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .padding(top = 4.dp, bottom = 24.dp)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
-
             // Error message
-            loginError?.let { error ->
+            if (showError && loginError != null) {
                 Text(
-                    text = error,
-                    color = Color.Red,
-                    fontSize = 14.sp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    text = loginError ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 8.dp)
                 )
             }
 
-            // Email field
+            // Email Field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    showError = false
+                },
                 label = { Text("Email") },
-                placeholder = { Text("Enter your Email") },
+                placeholder = { Text("Enter your email") },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Blue,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                shape = RoundedCornerShape(4.dp),
-                singleLine = true
+                isError = showError && viewModel.validateEmail(email) != null
             )
+
+            if (showError && viewModel.validateEmail(email) != null) {
+                Text(
+                    text = viewModel.validateEmail(email) ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Password field
+            // Password Field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { 
+                    password = it
+                    showError = false
+                },
                 label = { Text("Password") },
-                placeholder = { Text("Enter Password") },
-                visualTransformation = PasswordVisualTransformation(),
+                placeholder = { Text("Enter your password") },
                 modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Blue,
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                 ),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                shape = RoundedCornerShape(4.dp),
-                singleLine = true
+                isError = showError && viewModel.validatePassword(password) != null
             )
+
+            if (showError && viewModel.validatePassword(password) != null) {
+                Text(
+                    text = viewModel.validatePassword(password) ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Login button
+            // Login Button
             Button(
                 onClick = {
-                    isLoading = true
-                    authViewModel.login(email, password)
+                    showError = true
+                    if (viewModel.validateEmail(email) == null && 
+                        viewModel.validatePassword(password) == null) {
+                        viewModel.login(email, password)
+                    }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Blue,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(4.dp),
-                enabled = !isLoading
+                colors = ButtonDefaults.buttonColors(containerColor = Blue),
+                shape = RoundedCornerShape(4.dp)
             ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                } else {
-                    Text(
-                        text = "Login",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                Text("Login", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Register link
+            // Register Link
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
@@ -223,10 +210,14 @@ fun LoginScreen(
         }
     }
 
-    // Reset loading state when login error occurs
-    LaunchedEffect(loginError) {
-        if (loginError != null) {
-            isLoading = false
+    // Observe login state
+    val context = LocalContext.current
+    LaunchedEffect(viewModel.isLoggedIn.collectAsState().value) {
+        if (viewModel.isLoggedIn.value) {
+            val currentUser = viewModel.currentUser.value
+            val isAdmin = currentUser?.role?.lowercase() == "admin"
+            onLoginSuccess(isAdmin)
+            Toast.makeText(context, "Welcome ${currentUser?.name}", Toast.LENGTH_SHORT).show()
         }
     }
 }

@@ -7,13 +7,12 @@ object AppRoutes {
     const val REGISTER = "register"
 
     // Admin Routes
-    const val ADMIN_EVENT = "admin/event"
-    const val ADMIN_WORKOUT = "admin/workout"
-    const val ADMIN_PROGRESS = "admin/progress"
+    const val ADMIN_EVENT = "admin_event"
+    const val ADMIN_WORKOUT = "admin_workout"
+    const val ADMIN_PROGRESS = "admin_progress"
 
     // Member Routes
-    const val MEMBER_WORKOUT = "member/workout"
-    const val MEMBER_EVENT = "member/event"
-    const val MEMBER_PROGRESS = "member/progress"
-    const val MEMBER_PROFILE = "member/profile"
+    const val MEMBER_WORKOUT = "member_workout"
+    const val MEMBER_EVENT = "member_event"
+    const val MEMBER_PROFILE = "member_profile"
 }

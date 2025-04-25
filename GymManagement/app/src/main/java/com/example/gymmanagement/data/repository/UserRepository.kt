@@ -1,5 +1,6 @@
 package com.example.gymmanagement.data.repository
 
+import android.content.Context
 import com.example.gymmanagement.data.dao.UserDao
 import com.example.gymmanagement.data.dao.UserProfileDao
 import com.example.gymmanagement.data.model.UserEntity
@@ -22,12 +23,20 @@ interface UserRepository {
     suspend fun insertUserProfile(profile: UserProfile)
     suspend fun updateUserProfile(profile: UserProfile)
     suspend fun deleteUserProfile(profile: UserProfile)
+
+    // Session management
+    suspend fun getCurrentUser(): UserProfile?
+    suspend fun saveCurrentUser(profile: UserProfile)
+    suspend fun clearCurrentUser()
 }
 
 class UserRepositoryImpl(
     private val userDao: UserDao,
-    private val userProfileDao: UserProfileDao
+    private val userProfileDao: UserProfileDao,
+    private val context: Context
 ) : UserRepository {
+    private val sharedPreferences = context.getSharedPreferences("user_session", Context.MODE_PRIVATE)
+
     // UserEntity operations
     override fun getAllUsers(): Flow<List<UserEntity>> = userDao.getAllUsers()
     override suspend fun getUserByEmail(email: String): UserEntity? = userDao.getUserByEmail(email)
@@ -43,4 +52,21 @@ class UserRepositoryImpl(
     override suspend fun insertUserProfile(profile: UserProfile) = userProfileDao.insertUserProfile(profile)
     override suspend fun updateUserProfile(profile: UserProfile) = userProfileDao.updateUserProfile(profile)
     override suspend fun deleteUserProfile(profile: UserProfile) = userProfileDao.deleteUserProfile(profile)
+
+    // Session management
+    override suspend fun getCurrentUser(): UserProfile? {
+        val savedEmail = sharedPreferences.getString("user_email", null)
+        return savedEmail?.let { getUserProfileByEmail(it) }
+    }
+
+    override suspend fun saveCurrentUser(profile: UserProfile) {
+        sharedPreferences.edit().apply {
+            putString("user_email", profile.email)
+            apply()
+        }
+    }
+
+    override suspend fun clearCurrentUser() {
+        sharedPreferences.edit().clear().apply()
+    }
 } 

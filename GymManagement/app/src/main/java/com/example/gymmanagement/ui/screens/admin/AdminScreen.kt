@@ -10,23 +10,44 @@ import com.example.gymmanagement.ui.screens.admin.workout.AdminWorkoutScreen
 import com.example.gymmanagement.ui.screens.admin.event.AdminEventScreen
 import com.example.gymmanagement.ui.screens.admin.member.AdminMemberScreen
 import com.example.gymmanagement.ui.screens.admin.progress.AdminProgressScreen
+import androidx.navigation.NavController
+import com.example.gymmanagement.navigation.AppRoutes
+import com.example.gymmanagement.viewmodel.AuthViewModel
 
 @Composable
 fun AdminScreen(
-    viewModel: AdminViewModel = viewModel()
+    navController: NavController,
+    viewModel: AuthViewModel
 ) {
     var selectedTab by remember { mutableStateOf(0) }
+    
+    LaunchedEffect(navController) {
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            selectedTab = when (destination.route) {
+                AppRoutes.ADMIN_WORKOUT -> 0
+                AppRoutes.ADMIN_EVENT -> 1
+                AppRoutes.ADMIN_PROGRESS -> 3
+                else -> selectedTab
+            }
+        }
+    }
     
     Column(modifier = Modifier.fillMaxSize()) {
         TabRow(selectedTabIndex = selectedTab) {
             Tab(
                 selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
+                onClick = { 
+                    selectedTab = 0
+                    navController.navigate(AppRoutes.ADMIN_WORKOUT)
+                },
                 text = { Text("Workouts") }
             )
             Tab(
                 selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
+                onClick = { 
+                    selectedTab = 1
+                    navController.navigate(AppRoutes.ADMIN_EVENT)
+                },
                 text = { Text("Events") }
             )
             Tab(
@@ -36,22 +57,37 @@ fun AdminScreen(
             )
             Tab(
                 selected = selectedTab == 3,
-                onClick = { selectedTab = 3 },
+                onClick = { 
+                    selectedTab = 3
+                    navController.navigate(AppRoutes.ADMIN_PROGRESS)
+                },
                 text = { Text("Progress") }
             )
         }
         
         when (selectedTab) {
             0 -> AdminWorkoutScreen(
-                onNavigateToEvents = {},
-                onNavigateToProgress = {}
+                onNavigateToEvents = { 
+                    selectedTab = 1
+                    navController.navigate(AppRoutes.ADMIN_EVENT)
+                },
+                onNavigateToProgress = { 
+                    selectedTab = 3
+                    navController.navigate(AppRoutes.ADMIN_PROGRESS)
+                }
             )
             1 -> AdminEventScreen(
-                onNavigateToWorkouts = {},
-                onNavigateToProgress = {}
+                onNavigateToWorkouts = { 
+                    selectedTab = 0
+                    navController.navigate(AppRoutes.ADMIN_WORKOUT)
+                },
+                onNavigateToProgress = { 
+                    selectedTab = 3
+                    navController.navigate(AppRoutes.ADMIN_PROGRESS)
+                }
             )
             2 -> AdminMemberScreen()
-            3 -> AdminProgressScreen(viewModel = viewModel())
+            3 -> AdminProgressScreen()
         }
     }
 } 
