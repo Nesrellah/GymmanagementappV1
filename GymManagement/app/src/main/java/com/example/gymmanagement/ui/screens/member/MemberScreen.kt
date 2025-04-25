@@ -87,7 +87,7 @@ fun MemberScreen(
                         label = {
                             Text(
                                 text = item.label,
-                                color = if (isSelected) Color(0xFF0000CD) else Color.Gray
+                                color = if (isSelected) Color(0xFF4CAF50) else Color.Gray
                             )
                         },
                         selected = isSelected,
@@ -100,7 +100,7 @@ fun MemberScreen(
                             }
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF0000CD),
+                            selectedIconColor = Color(0xFF4CAF50),
                             unselectedIconColor = Color.Gray,
                             indicatorColor = Color.White
                         )

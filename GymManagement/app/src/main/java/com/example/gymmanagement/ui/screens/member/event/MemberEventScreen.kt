@@ -84,17 +84,6 @@ fun MemberEventScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.gym_logo),
-                        contentDescription = "No events",
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
-                    
                     Text(
                         text = "No upcoming events yet",
                         fontSize = 20.sp,
@@ -104,7 +93,7 @@ fun MemberEventScreen(
                     )
                     
                     Text(
-                        text = "Events will appear here once they are added by the admin",
+                        text = "Events will be displayed here when available.",
                         fontSize = 14.sp,
                         color = Color.Gray,
                         textAlign = TextAlign.Center,
