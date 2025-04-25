@@ -34,18 +34,20 @@ class AuthViewModel(
 
     fun checkLoginState() {
         viewModelScope.launch {
-            repository.getCurrentUser()?.let { profile ->
+            val profile = repository.getCurrentUser()
+            if (profile != null) {
                 _currentUser.value = profile
                 _isLoggedIn.value = true
+            } else {
+                _currentUser.value = null
+                _isLoggedIn.value = false
             }
         }
     }
 
     fun validateEmail(email: String): String? {
         if (email.isEmpty()) return "Email is required"
-        val emailPattern = Pattern.compile(
-            "^[A-Za-z0-9+_.-]+@(.+)\$"
-        )
+        val emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)\$")
         if (!emailPattern.matcher(email).matches()) {
             return "Please enter a valid email address"
         }
@@ -91,11 +93,10 @@ class AuthViewModel(
     fun registerUser(
         name: String, email: String, password: String,
         age: String, height: String, weight: String,
-        role: String = "member",
+        role: String = "admin",
         onComplete: (Boolean, String) -> Unit
     ) {
         viewModelScope.launch {
-            // Validate all fields
             val nameError = validateName(name)
             val emailError = validateEmail(email)
             val passwordError = validatePassword(password)
@@ -169,7 +170,8 @@ class AuthViewModel(
                     _currentUser.value = profile
                     _isLoggedIn.value = true
                     _loginError.value = null
-                    // Save user session
+
+                    // Save the current user - this will set app_just_started to false
                     repository.saveCurrentUser(profile)
                 }
             } ?: run {

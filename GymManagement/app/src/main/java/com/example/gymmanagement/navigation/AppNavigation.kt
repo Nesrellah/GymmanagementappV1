@@ -1,5 +1,6 @@
 package com.example.gymmanagement.navigation
 
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -22,87 +23,64 @@ fun AppNavigation(app: GymManagementApp) {
     val authViewModel: AuthViewModel = viewModel(
         factory = AuthViewModel.Factory(app.userRepository)
     )
-    
+
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val currentUser by authViewModel.currentUser.collectAsState()
 
-    // Check initial state
-    LaunchedEffect(Unit) {
-        authViewModel.checkLoginState()
-    }
-
-    // Handle navigation based on auth state
+    // Handle initial navigation based on login state
     LaunchedEffect(isLoggedIn, currentUser) {
         if (isLoggedIn && currentUser != null) {
-            val isAdmin = currentUser?.role?.lowercase() == "admin"
-            val route = if (isAdmin) AppRoutes.ADMIN_EVENT else AppRoutes.MEMBER_WORKOUT
+            val route = if (currentUser!!.role.lowercase() == "admin") AppRoutes.ADMIN_WORKOUT else AppRoutes.MEMBER_WORKOUT
+            Log.d("AppNavigation", "Navigating to route: $route for user: ${currentUser!!.email}")
             navController.navigate(route) {
-                popUpTo(AppRoutes.SPLASH) { inclusive = true }
+                popUpTo(0) { inclusive = true }
                 launchSingleTop = true
             }
         }
     }
-    
+
     NavHost(
         navController = navController,
         startDestination = AppRoutes.SPLASH
     ) {
-        // Auth Routes
         composable(AppRoutes.SPLASH) {
-            SplashScreen(
-                navController = navController,
-                viewModel = authViewModel
-            )
+            SplashScreen(navController, authViewModel)
         }
-        
+
         composable(AppRoutes.LOGIN) {
             LoginScreen(
                 navController = navController,
                 viewModel = authViewModel,
                 onLoginSuccess = { isAdmin ->
-                    val route = if (isAdmin) AppRoutes.ADMIN_EVENT else AppRoutes.MEMBER_WORKOUT
+                    val route = if (isAdmin) AppRoutes.ADMIN_WORKOUT else AppRoutes.MEMBER_WORKOUT
+                    Log.d("AppNavigation", "Login success, navigating to route: $route")
                     navController.navigate(route) {
-                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
                     }
                 }
             )
         }
-        
+
         composable(AppRoutes.REGISTER) {
             RegisterScreen(
                 navController = navController,
                 viewModel = authViewModel
             )
         }
-        
-        // Admin Routes
-        composable(AppRoutes.ADMIN_EVENT) {
-            AdminScreen(
-                navController = navController,
-                viewModel = authViewModel
-            )
-        }
-        
+
         composable(AppRoutes.ADMIN_WORKOUT) {
             AdminScreen(
                 navController = navController,
                 viewModel = authViewModel
             )
         }
-        
-        composable(AppRoutes.ADMIN_PROGRESS) {
-            AdminScreen(
-                navController = navController,
-                viewModel = authViewModel
-            )
-        }
-        
-        // Single composable for Member section that handles internal navigation
-        composable(route = AppRoutes.MEMBER_WORKOUT) {
+
+        composable(AppRoutes.MEMBER_WORKOUT) {
             MemberScreen(
                 navController = navController,
                 viewModel = authViewModel
             )
         }
     }
-} 
+}

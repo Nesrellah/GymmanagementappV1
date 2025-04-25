@@ -1,6 +1,7 @@
 package com.example.gymmanagement
 
 import android.app.Application
+import android.content.Context
 import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.repository.UserRepository
 import com.example.gymmanagement.data.repository.UserRepositoryImpl

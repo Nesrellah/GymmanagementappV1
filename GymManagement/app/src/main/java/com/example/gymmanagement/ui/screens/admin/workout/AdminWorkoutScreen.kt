@@ -34,8 +34,12 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.model.Workout
+import com.example.gymmanagement.data.repository.WorkoutRepository
+import com.example.gymmanagement.data.repository.WorkoutRepositoryImpl
 import com.example.gymmanagement.viewmodel.AdminWorkoutViewModel
+import com.example.gymmanagement.utils.ImagePicker
 import com.example.gymmanagement.utils.rememberImagePicker
 import kotlinx.coroutines.flow.Flow
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
@@ -54,11 +58,27 @@ fun AdminWorkoutScreen(
     onNavigateToEvents: () -> Unit,
     onNavigateToProgress: () -> Unit
 ) {
+    val context = LocalContext.current
+    val database = AppDatabase.getDatabase(context)
+    val workoutRepository = WorkoutRepositoryImpl(database.workoutDao())
+    
+    val viewModel: AdminWorkoutViewModel = viewModel(
+        factory = AdminWorkoutViewModel.Factory(workoutRepository, ImagePicker(context))
+    )
+    
+    val imagePicker = rememberImagePicker { uri ->
+        // Save image to internal storage using ImagePicker
+        val imagePickerInstance = ImagePicker(context)
+        val savedPath = imagePickerInstance.saveImageToInternalStorage(uri)
+        // Update the ViewModel with the saved image path
+        viewModel.setImagePath(savedPath)
+    }
+    
     var showAddDialog by remember { mutableStateOf(false) }
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedWorkout by remember { mutableStateOf<Workout?>(null) }
-    val viewModel: AdminWorkoutViewModel = viewModel()
     val workouts by viewModel.workouts.collectAsState(initial = emptyList())
+    val imagePath by viewModel.imagePath.collectAsState()
 
     Column(
         modifier = Modifier
@@ -79,7 +99,7 @@ fun AdminWorkoutScreen(
                 fontWeight = FontWeight.Bold,
                 color = DeepBlue
             )
-            
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -95,7 +115,7 @@ fun AdminWorkoutScreen(
                         tint = DeepBlue
                     )
                 }
-                
+
                 IconButton(
                     onClick = onNavigateToProgress,
                     modifier = Modifier
@@ -125,7 +145,9 @@ fun AdminWorkoutScreen(
             WorkoutForm(
                 onWorkoutCreated = { workout ->
                     viewModel.insertWorkout(workout)
-                }
+                },
+                viewModel = viewModel,
+                onImageSelected = { imagePicker.launch("image/*") }
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -153,7 +175,6 @@ fun AdminWorkoutScreen(
         WorkoutDialog(
             onDismiss = { showAddDialog = false },
             onSave = { eventTitle, traineeId, sets, repsOrSecs, restTime, imageUri ->
-                val imagePath = imageUri?.let { viewModel.handleImageSelection(it) }
                 val workout = Workout(
                     id = 0,
                     eventTitle = eventTitle,
@@ -174,7 +195,6 @@ fun AdminWorkoutScreen(
             workout = selectedWorkout,
             onDismiss = { showEditDialog = false },
             onSave = { eventTitle, traineeId, sets, repsOrSecs, restTime, imageUri ->
-                val imagePath = imageUri?.let { viewModel.handleImageSelection(it) }
                 val updatedWorkout = selectedWorkout!!.copy(
                     eventTitle = eventTitle,
                     traineeId = traineeId,
@@ -190,34 +210,20 @@ fun AdminWorkoutScreen(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-fun AdminWorkoutScreenPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            AdminWorkoutScreen({}, {})
-        }
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutForm(
-    onWorkoutCreated: (Workout) -> Unit
+    onWorkoutCreated: (Workout) -> Unit,
+    viewModel: AdminWorkoutViewModel,
+    onImageSelected: () -> Unit
 ) {
     var eventTitle by remember { mutableStateOf("") }
     var traineeId by remember { mutableStateOf("") }
     var sets by remember { mutableStateOf("") }
     var repsOrSecs by remember { mutableStateOf("") }
     var restTime by remember { mutableStateOf("") }
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    
-    val imagePicker = rememberImagePicker { uri ->
-        imageUri = uri
-    }
+    val imagePath by viewModel.imagePath.collectAsState()
 
     Column(modifier = Modifier.fillMaxWidth()) {
         // Image picker card
@@ -225,7 +231,7 @@ fun WorkoutForm(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .clickable { imagePicker.launch("image/*") },
+                .clickable(onClick = onImageSelected),
             shape = RoundedCornerShape(8.dp),
             colors = CardDefaults.cardColors(containerColor = LightBlue)
         ) {
@@ -233,9 +239,9 @@ fun WorkoutForm(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                if (imageUri != null) {
+                if (imagePath != null) {
                     AsyncImage(
-                        model = imageUri,
+                        model = imagePath,
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
@@ -344,7 +350,7 @@ fun WorkoutForm(
                     sets = sets.toIntOrNull() ?: 0,
                     repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
                     restTime = restTime.toIntOrNull() ?: 0,
-                    imageUri = imageUri?.toString()
+                    imageUri = imagePath
                 )
                 onWorkoutCreated(workout)
                 // Reset form
@@ -353,7 +359,7 @@ fun WorkoutForm(
                 sets = ""
                 repsOrSecs = ""
                 restTime = ""
-                imageUri = null
+                viewModel.setImagePath(null)
             },
             enabled = eventTitle.isNotBlank() && traineeId.isNotBlank() &&
                     sets.isNotBlank() && repsOrSecs.isNotBlank() && restTime.isNotBlank(),
@@ -375,18 +381,6 @@ fun WorkoutForm(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun WorkoutFormPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            WorkoutForm(onWorkoutCreated = {})
-        }
-    }
-}
 
 @Composable
 fun WorkoutCard(
@@ -512,31 +506,6 @@ fun WorkoutCard(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun WorkoutCardPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            WorkoutCard(
-                workout = Workout(
-                    id = 1,
-                    eventTitle = "Push ups",
-                    traineeId = "TR001",
-                    sets = 3,
-                    repsOrSecs = 15,
-                    restTime = 30,
-                    imageUri = ""
-                ),
-                onEdit = {},
-                onDelete = {}
-            )
-        }
-    }
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutDialog(
@@ -656,30 +625,3 @@ fun WorkoutDialog(
     )
 }
 
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun EditWorkoutDialogPreview() {
-    GymManagementAppTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-        ) {
-            WorkoutDialog(
-                workout = Workout(
-                    id = 1,
-                    eventTitle = "Push ups",
-                    traineeId = "TR001",
-                    sets = 3,
-                    repsOrSecs = 15,
-                    restTime = 30,
-                    imageUri = ""
-                ),
-                onDismiss = {},
-                onSave = { eventTitle, traineeId, sets, repsOrSecs, restTime, imageUri -> 
-                    // Preview doesn't need to do anything
-                }
-            )
-        }
-    }
-} 

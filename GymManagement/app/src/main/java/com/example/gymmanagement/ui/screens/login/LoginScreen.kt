@@ -1,5 +1,6 @@
 package com.example.gymmanagement.ui.screens.login
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -27,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gymmanagement.R
-import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,7 +42,20 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
     val loginError by viewModel.loginError.collectAsState()
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
     val context = LocalContext.current
+
+    // Observe login state
+    LaunchedEffect(isLoggedIn, currentUser) {
+        if (isLoggedIn && currentUser != null) {
+            val isAdmin = currentUser!!.role.lowercase() == "admin"
+            Log.d("LoginScreen", "Login successful for user: ${currentUser!!.email}, isAdmin: $isAdmin")
+            onLoginSuccess(isAdmin)
+            Toast.makeText(context, "Welcome ${currentUser!!.name}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     Column(
         modifier = Modifier
@@ -196,7 +209,7 @@ fun LoginScreen(
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     modifier = Modifier.clickable {
-                        navController.navigate(AppRoutes.REGISTER)
+                        navController.navigate("register")
                     }
                 )
             }
@@ -207,16 +220,6 @@ fun LoginScreen(
     loginError?.let { error ->
         if (error.isNotEmpty()) {
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    // Observe login state
-    LaunchedEffect(viewModel.isLoggedIn.collectAsState().value) {
-        if (viewModel.isLoggedIn.value) {
-            val currentUser = viewModel.currentUser.value
-            val isAdmin = currentUser?.role?.lowercase() == "admin"
-            onLoginSuccess(isAdmin)
-            Toast.makeText(context, "Welcome ${currentUser?.name}", Toast.LENGTH_SHORT).show()
         }
     }
 }

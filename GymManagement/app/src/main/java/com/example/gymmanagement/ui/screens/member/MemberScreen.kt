@@ -1,5 +1,6 @@
 package com.example.gymmanagement.ui.screens.member
 
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -53,16 +54,19 @@ fun MemberScreen(
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
 
-    LaunchedEffect(isLoggedIn) {
-        if (!isLoggedIn) {
+    LaunchedEffect(isLoggedIn, currentUser) {
+        if (!isLoggedIn || currentUser == null || currentUser?.role?.lowercase() != "member") {
+            Log.d("MemberScreen", "Not logged in or not a member, navigating to login")
             navController.navigate(AppRoutes.LOGIN) {
-                popUpTo(navController.graph.startDestinationId) { inclusive = true }
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
             }
         }
     }
 
     // Set up initial route
     LaunchedEffect(Unit) {
+        Log.d("MemberScreen", "Setting up initial route")
         memberNavController.navigate(AppRoutes.MEMBER_WORKOUT) {
             popUpTo(0) { inclusive = true }
             launchSingleTop = true

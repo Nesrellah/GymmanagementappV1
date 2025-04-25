@@ -1,15 +1,14 @@
 package com.example.gymmanagement.ui.screens.register
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
@@ -25,14 +24,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.gymmanagement.GymManagementApp
 import com.example.gymmanagement.navigation.AppRoutes
-import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -57,7 +51,6 @@ fun RegisterScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Back Button (Fixed at top)
         IconButton(
             onClick = { navController.navigateUp() },
             modifier = Modifier.padding(start = 24.dp, top = 8.dp)
@@ -69,41 +62,37 @@ fun RegisterScreen(
             )
         }
 
-        // Scrollable content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
         ) {
-            // Profile Icon
+            // Add spacing instead of offset
+            Spacer(modifier = Modifier.height(10.dp))
+
             Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 24.dp),
+                    .align(Alignment.CenterHorizontally)
+                    .size(80.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF0000CD)),
                 contentAlignment = Alignment.Center
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFF0000CD)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Profile",
-                        tint = Color.White,
-                        modifier = Modifier.size(40.dp)
-                    )
-                }
+                Icon(
+                    imageVector = Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = Color.White,
+                    modifier = Modifier.size(40.dp)
+                )
             }
 
             Text(
                 text = "Create Account",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Black,
+                modifier = Modifier.padding(top = 16.dp)
             )
 
             Text(
@@ -113,7 +102,7 @@ fun RegisterScreen(
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
 
-            // Form Fields
+            // --- Name Field ---
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -129,7 +118,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && viewModel.validateName(name) != null
             )
-
             if (showError && viewModel.validateName(name) != null) {
                 Text(
                     text = viewModel.validateName(name) ?: "",
@@ -138,6 +126,7 @@ fun RegisterScreen(
                 )
             }
 
+            // --- Email Field ---
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -153,7 +142,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && viewModel.validateEmail(email) != null
             )
-
             if (showError && viewModel.validateEmail(email) != null) {
                 Text(
                     text = viewModel.validateEmail(email) ?: "",
@@ -162,6 +150,7 @@ fun RegisterScreen(
                 )
             }
 
+            // --- Password Field ---
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -178,7 +167,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && viewModel.validatePassword(password) != null
             )
-
             if (showError && viewModel.validatePassword(password) != null) {
                 Text(
                     text = viewModel.validatePassword(password) ?: "",
@@ -187,6 +175,7 @@ fun RegisterScreen(
                 )
             }
 
+            // --- Confirm Password ---
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -203,7 +192,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && password != confirmPassword
             )
-
             if (showError && password != confirmPassword) {
                 Text(
                     text = "Passwords do not match",
@@ -212,6 +200,7 @@ fun RegisterScreen(
                 )
             }
 
+            // --- Age Field ---
             OutlinedTextField(
                 value = age,
                 onValueChange = { age = it },
@@ -228,7 +217,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && viewModel.validateAge(age) != null
             )
-
             if (showError && viewModel.validateAge(age) != null) {
                 Text(
                     text = viewModel.validateAge(age) ?: "",
@@ -237,6 +225,7 @@ fun RegisterScreen(
                 )
             }
 
+            // --- Height Field ---
             OutlinedTextField(
                 value = height,
                 onValueChange = { height = it },
@@ -253,7 +242,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && viewModel.validateHeight(height) != null
             )
-
             if (showError && viewModel.validateHeight(height) != null) {
                 Text(
                     text = viewModel.validateHeight(height) ?: "",
@@ -262,10 +250,11 @@ fun RegisterScreen(
                 )
             }
 
+            // --- Weight Field ---
             OutlinedTextField(
                 value = weight,
                 onValueChange = { weight = it },
-                label = { Text("Weight(kg)") },
+                label = { Text("Weight (kg)") },
                 placeholder = { Text("Enter your weight in kg") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -278,7 +267,6 @@ fun RegisterScreen(
                 ),
                 isError = showError && viewModel.validateWeight(weight) != null
             )
-
             if (showError && viewModel.validateWeight(weight) != null) {
                 Text(
                     text = viewModel.validateWeight(weight) ?: "",
@@ -287,7 +275,7 @@ fun RegisterScreen(
                 )
             }
 
-            // Register Button
+            // --- Register Button ---
             Button(
                 onClick = {
                     showError = true
@@ -310,13 +298,11 @@ fun RegisterScreen(
                             height = height,
                             weight = weight
                         ) { success, message ->
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             if (success) {
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                                 navController.navigate(AppRoutes.LOGIN) {
                                     popUpTo(AppRoutes.REGISTER) { inclusive = true }
                                 }
-                            } else {
-                                Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             }
                         }
                     }
@@ -331,7 +317,7 @@ fun RegisterScreen(
                 Text("Register", fontSize = 16.sp)
             }
 
-            // Login Link
+            // --- Login Link ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -348,7 +334,7 @@ fun RegisterScreen(
                     color = Color(0xFF0000CD),
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
-                    modifier = Modifier.clickable { 
+                    modifier = Modifier.clickable {
                         navController.navigate(AppRoutes.LOGIN) {
                             popUpTo(AppRoutes.REGISTER) { inclusive = true }
                         }
@@ -358,7 +344,7 @@ fun RegisterScreen(
         }
     }
 
-    // Show registration error if any
+    // Toast error
     registerError?.let { error ->
         if (error.isNotEmpty()) {
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()

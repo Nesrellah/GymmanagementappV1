@@ -11,20 +11,21 @@ import java.io.FileOutputStream
 import java.util.UUID
 
 class ImagePicker(private val context: Context) {
-    
+
+    // Save image to internal storage
     fun saveImageToInternalStorage(uri: Uri): String? {
         return try {
             // Create a unique filename
             val fileName = "workout_image_${UUID.randomUUID()}.jpg"
             val file = File(context.filesDir, fileName)
-            
+
             // Copy the content to internal storage
             context.contentResolver.openInputStream(uri)?.use { input ->
                 FileOutputStream(file).use { output ->
                     input.copyTo(output)
                 }
             }
-            
+
             file.absolutePath
         } catch (e: Exception) {
             e.printStackTrace()
@@ -33,6 +34,7 @@ class ImagePicker(private val context: Context) {
     }
 }
 
+// Composable function to pick an image
 @Composable
 fun rememberImagePicker(
     onImagePicked: (Uri) -> Unit
@@ -40,4 +42,4 @@ fun rememberImagePicker(
     contract = ActivityResultContracts.GetContent()
 ) { uri: Uri? ->
     uri?.let { onImagePicked(it) }
-} 
+}

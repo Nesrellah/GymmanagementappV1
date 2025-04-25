@@ -9,15 +9,17 @@ import com.example.gymmanagement.data.model.UserEntity
 import com.example.gymmanagement.data.model.UserProfile
 import com.example.gymmanagement.data.model.MemberWorkout
 import com.example.gymmanagement.data.model.EventEntity
+import com.example.gymmanagement.data.model.Workout
 
 @Database(
     entities = [
         UserEntity::class,
         UserProfile::class,
         MemberWorkout::class,
-        EventEntity::class
+        EventEntity::class,
+        Workout::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -25,7 +27,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun userProfileDao(): UserProfileDao
     abstract fun memberWorkoutDao(): MemberWorkoutDao
     abstract fun eventDao(): EventDao
-
+    abstract fun workoutDao(): WorkoutDao
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null

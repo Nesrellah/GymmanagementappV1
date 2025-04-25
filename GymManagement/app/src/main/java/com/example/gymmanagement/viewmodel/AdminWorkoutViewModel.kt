@@ -24,6 +24,9 @@ class AdminWorkoutViewModel(
     private val _selectedWorkout = MutableStateFlow<Workout?>(null)
     val selectedWorkout: StateFlow<Workout?> = _selectedWorkout.asStateFlow()
 
+    private val _imagePath = MutableStateFlow<String?>(null)
+    val imagePath: StateFlow<String?> = _imagePath.asStateFlow()
+
     val workouts: StateFlow<List<Workout>> = repository.getAllWorkouts()
         .stateIn(
             scope = viewModelScope,
@@ -56,7 +59,13 @@ class AdminWorkoutViewModel(
     }
 
     fun handleImageSelection(uri: Uri): String? {
-        return imagePicker.saveImageToInternalStorage(uri)
+        val savedPath = imagePicker.saveImageToInternalStorage(uri)
+        _imagePath.value = savedPath
+        return savedPath
+    }
+
+    fun setImagePath(path: String?) {
+        _imagePath.value = path
     }
 
     class Factory(

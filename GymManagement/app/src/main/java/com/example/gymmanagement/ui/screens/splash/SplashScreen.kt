@@ -1,26 +1,24 @@
 package com.example.gymmanagement.ui.screens.splash
 
-import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -67,11 +65,11 @@ fun HeaderWithLogo() {
                 contentDescription = "Gym Logo",
                 modifier = Modifier
                     .size(65.dp)
-                    .clip(CircleShape)
+                    .clip(RoundedCornerShape(50))
                     .border(
                         width = 2.dp,
                         color = Color.White,
-                        shape = CircleShape
+                        shape = RoundedCornerShape(50)
                     ),
                 contentScale = ContentScale.Crop
             )
@@ -156,6 +154,20 @@ fun SplashScreen(
     navController: NavController,
     viewModel: AuthViewModel
 ) {
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
+
+    // Check login state and navigate accordingly
+    LaunchedEffect(isLoggedIn, currentUser) {
+        if (isLoggedIn && currentUser != null) {
+            val route = if (currentUser!!.role.lowercase() == "admin") AppRoutes.ADMIN_EVENT else AppRoutes.MEMBER_WORKOUT
+            navController.navigate(route) {
+                popUpTo(0) { inclusive = true }
+                launchSingleTop = true
+            }
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize(),
     ) {
@@ -178,7 +190,7 @@ fun SplashScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .height(120.dp),  // Reduced height
+                    .height(120.dp),
                 contentScale = ContentScale.Crop
             )
 
@@ -194,8 +206,8 @@ fun SplashScreen(
                 Button(
                     onClick = {
                         navController.navigate(AppRoutes.LOGIN) {
-                            // Clear back stack up to splash screen
-                            popUpTo(AppRoutes.SPLASH) { inclusive = false }
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     modifier = Modifier
@@ -223,8 +235,8 @@ fun SplashScreen(
                 OutlinedButton(
                     onClick = {
                         navController.navigate(AppRoutes.REGISTER) {
-                            // Clear back stack up to splash screen
-                            popUpTo(AppRoutes.SPLASH) { inclusive = false }
+                            popUpTo(0) { inclusive = true }
+                            launchSingleTop = true
                         }
                     },
                     modifier = Modifier

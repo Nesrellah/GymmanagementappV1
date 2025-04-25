@@ -7,9 +7,11 @@ object AppRoutes {
     const val REGISTER = "register"
 
     // Admin Routes
-    const val ADMIN_EVENT = "admin_event"
     const val ADMIN_WORKOUT = "admin_workout"
+    const val ADMIN_EVENT = "admin_event"
     const val ADMIN_PROGRESS = "admin_progress"
+    const val ADMIN_MEMBER = "admin_member"
+
 
     // Member Routes
     const val MEMBER_WORKOUT = "member_workout"
