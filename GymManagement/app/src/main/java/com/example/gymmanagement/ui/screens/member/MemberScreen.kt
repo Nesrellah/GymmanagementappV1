@@ -124,7 +124,13 @@ fun MemberScreen(
                 currentUser?.let { user ->
                     MemberProfileScreen(
                         traineeId = user.id.toString(),
-                        viewModel = memberProfileViewModel
+                        viewModel = memberProfileViewModel,
+                        onLogout = {
+                            viewModel.logout()
+                            navController.navigate(AppRoutes.LOGIN) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                        }
                     )
                 } ?: run {
                     Box(

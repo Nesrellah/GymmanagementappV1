@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,7 +29,8 @@ import com.example.gymmanagement.viewmodel.MemberProfileViewModel
 @Composable
 fun MemberProfileScreen(
     traineeId: String,
-    viewModel: MemberProfileViewModel = viewModel()
+    viewModel: MemberProfileViewModel = viewModel(),
+    onLogout: () -> Unit = {}
 ) {
     var isEditing by remember { mutableStateOf(false) }
     val userProfile by viewModel.userProfile.collectAsState()
@@ -42,19 +44,30 @@ fun MemberProfileScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Top App Bar
+        // Top App Bar with Logout Button
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(Color(0xFF0000CD))
-                .padding(16.dp)
+                .padding(6.dp)
         ) {
             Text(
                 text = "Your profile",
                 color = Color.White,
                 fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier.align(Alignment.CenterStart)
             )
+            IconButton(
+                onClick = onLogout,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ExitToApp,
+                    contentDescription = "Logout",
+                    tint = Color.White
+                )
+            }
         }
 
         userProfile?.let { profile ->

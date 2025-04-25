@@ -5,11 +5,12 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,16 +25,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.gymmanagement.R
 import com.example.gymmanagement.navigation.AppRoutes
-import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
-import com.example.gymmanagement.GymManagementApp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,87 +37,82 @@ fun LoginScreen(
     viewModel: AuthViewModel,
     onLoginSuccess: (Boolean) -> Unit
 ) {
+    val scrollState = rememberScrollState()
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
     val loginError by viewModel.loginError.collectAsState()
+    val context = LocalContext.current
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
+            .verticalScroll(scrollState)
     ) {
-        Column(
+        // Image with Back Button overlay
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-                .padding(top = 32.dp, bottom = 24.dp)
+                .fillMaxWidth()
+                .height(220.dp) // New image height
         ) {
-            // Back Button
+            Image(
+                painter = painterResource(id = R.drawable.gym_logo),
+                contentDescription = "Gym Equipment",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
+            )
+
             IconButton(
                 onClick = { navController.navigateUp() },
-                modifier = Modifier.align(Alignment.Start)
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.TopStart)
+                    .background(Color.Black.copy(alpha = 0.4f), shape = RoundedCornerShape(50))
+                    .size(36.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.Black
+                    tint = Color.White
                 )
             }
+        }
 
-            // Profile Icon
-            Icon(
-                imageVector = Icons.Default.Person,
-                contentDescription = "Profile",
-                modifier = Modifier
-                    .size(64.dp)
-                    .align(Alignment.CenterHorizontally),
-                tint = Blue
-            )
+        Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
 
-            // Title
             Text(
                 text = "Welcome Back",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 16.dp)
+                color = Color.Black
             )
 
             Text(
-                text = "Sign in to continue",
-                fontSize = 14.sp,
+                text = "Login to your account",
+                fontSize = 16.sp,
                 color = Color.Gray,
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(top = 4.dp, bottom = 24.dp)
+                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
             )
 
-            // Error message
-            if (showError && loginError != null) {
-                Text(
-                    text = loginError ?: "",
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-
-            // Email Field
+            // Email Input
             OutlinedTextField(
                 value = email,
-                onValueChange = { 
+                onValueChange = {
                     email = it
                     showError = false
                 },
                 label = { Text("Email") },
-                placeholder = { Text("Enter your email") },
-                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Enter your Email") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (showError && viewModel.validateEmail(email) != null) 4.dp else 12.dp),
                 singleLine = true,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
+                    focusedBorderColor = Color(0xFF0000CD),
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                 ),
                 isError = showError && viewModel.validateEmail(email) != null
@@ -132,26 +122,27 @@ fun LoginScreen(
                 Text(
                     text = viewModel.validateEmail(email) ?: "",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password Field
+            // Password Input
             OutlinedTextField(
                 value = password,
-                onValueChange = { 
+                onValueChange = {
                     password = it
                     showError = false
                 },
                 label = { Text("Password") },
-                placeholder = { Text("Enter your password") },
-                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Create Password") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (showError && viewModel.validatePassword(password) != null) 4.dp else 12.dp),
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Blue,
+                    focusedBorderColor = Color(0xFF0000CD),
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
                 ),
                 isError = showError && viewModel.validatePassword(password) != null
@@ -161,35 +152,37 @@ fun LoginScreen(
                 Text(
                     text = viewModel.validatePassword(password) ?: "",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                    modifier = Modifier.padding(bottom = 12.dp)
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // Reduced space between password and login button
+            Spacer(modifier = Modifier.height(5.dp))
 
             // Login Button
             Button(
                 onClick = {
                     showError = true
-                    if (viewModel.validateEmail(email) == null && 
-                        viewModel.validatePassword(password) == null) {
+                    if (viewModel.validateEmail(email) == null &&
+                        viewModel.validatePassword(password) == null
+                    ) {
                         viewModel.login(email, password)
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Blue),
+                    .height(50.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0000CD)),
                 shape = RoundedCornerShape(4.dp)
             ) {
-                Text("Login", fontSize = 16.sp)
+                Text("Login", fontSize = 16.sp, color = Color.White)
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Register Link
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
@@ -199,10 +192,10 @@ fun LoginScreen(
                 )
                 Text(
                     text = "Register",
-                    color = Blue,
+                    color = Color(0xFF0000CD),
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
-                    modifier = Modifier.clickable { 
+                    modifier = Modifier.clickable {
                         navController.navigate(AppRoutes.REGISTER)
                     }
                 )
@@ -210,8 +203,14 @@ fun LoginScreen(
         }
     }
 
+    // Show login error toast
+    loginError?.let { error ->
+        if (error.isNotEmpty()) {
+            Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     // Observe login state
-    val context = LocalContext.current
     LaunchedEffect(viewModel.isLoggedIn.collectAsState().value) {
         if (viewModel.isLoggedIn.value) {
             val currentUser = viewModel.currentUser.value

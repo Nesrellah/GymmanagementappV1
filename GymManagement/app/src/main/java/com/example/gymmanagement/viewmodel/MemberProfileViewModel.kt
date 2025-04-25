@@ -64,7 +64,8 @@ class MemberProfileViewModel(
                     bmi = bmi,
                     phone = phone,
                     address = address,
-                    role = role
+                    role = role,
+                    joinDate = existingProfile.joinDate // Preserve the original join date
                 )
                 repository.updateUserProfile(updatedProfile)
                 _userProfile.value = updatedProfile
