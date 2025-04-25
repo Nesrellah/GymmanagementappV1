@@ -46,47 +46,51 @@ class AuthViewModel(
     }
 
     fun validateEmail(email: String): String? {
-        if (email.isEmpty()) return "Email is required"
-        val emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@(.+)\$")
+        if (email.isEmpty()) return "Email address is required"
+        val emailPattern = Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\$")
         if (!emailPattern.matcher(email).matches()) {
-            return "Please enter a valid email address"
+            return "Please enter a valid email address (e.g., user@example.com)"
         }
         return null
     }
 
     fun validatePassword(password: String): String? {
         if (password.isEmpty()) return "Password is required"
-        if (password.length < 6) return "Password must be at least 6 characters"
+        if (password.length < 6) return "Password must be at least 6 characters long"
         return null
     }
 
     fun validateName(name: String): String? {
-        if (name.isEmpty()) return "Name is required"
-        if (name.length < 2) return "Name must be at least 2 characters"
+        if (name.isEmpty()) return "Full name is required"
+        if (name.length < 2) return "Name must be at least 2 characters long"
+        if (!name.matches(Regex("^[a-zA-Z\\s]*$"))) return "Name can only contain letters and spaces"
         return null
     }
 
     fun validateAge(age: String): String? {
         if (age.isEmpty()) return "Age is required"
         val ageInt = age.toIntOrNull()
-        if (ageInt == null) return "Please enter a valid age"
-        if (ageInt < 13 || ageInt > 100) return "Age must be between 13 and 100"
+        if (ageInt == null) return "Please enter a valid number for age"
+        if (ageInt < 10) return "You must be at least 10 years old to register"
+        if (ageInt > 100) return "Please enter a valid age (maximum 100 years)"
         return null
     }
 
     fun validateHeight(height: String): String? {
         if (height.isEmpty()) return "Height is required"
         val heightFloat = height.toFloatOrNull()
-        if (heightFloat == null) return "Please enter a valid height"
-        if (heightFloat < 100 || heightFloat > 250) return "Height must be between 100cm and 250cm"
+        if (heightFloat == null) return "Please enter a valid number for height"
+        if (heightFloat < 80) return "Height must be at least 80 cm"
+        if (heightFloat > 250) return "Height cannot exceed 250 cm"
         return null
     }
 
     fun validateWeight(weight: String): String? {
         if (weight.isEmpty()) return "Weight is required"
         val weightFloat = weight.toFloatOrNull()
-        if (weightFloat == null) return "Please enter a valid weight"
-        if (weightFloat < 30 || weightFloat > 300) return "Weight must be between 30kg and 300kg"
+        if (weightFloat == null) return "Please enter a valid number for weight"
+        if (weightFloat < 35) return "Weight must be at least 35 kg"
+        if (weightFloat > 200) return "Weight cannot exceed 200 kg"
         return null
     }
 
@@ -106,18 +110,19 @@ class AuthViewModel(
 
             if (nameError != null || emailError != null || passwordError != null ||
                 ageError != null || heightError != null || weightError != null) {
-                _registerError.value = listOfNotNull(
+                val errorMessages = listOfNotNull(
                     nameError, emailError, passwordError,
                     ageError, heightError, weightError
-                ).joinToString("\n")
-                onComplete(false, "Please fix the validation errors")
+                )
+                _registerError.value = "Please fix the following issues:\n${errorMessages.joinToString("\n")}"
+                onComplete(false, "Registration failed. Please check the form for errors.")
                 return@launch
             }
 
             val existingUser = repository.getUserByEmail(email)
             if (existingUser != null) {
-                _registerError.value = "User with this email already exists"
-                onComplete(false, "User already exists")
+                _registerError.value = "This email address is already registered. Please use a different email or try logging in."
+                onComplete(false, "Email already exists")
                 return@launch
             }
 
@@ -151,7 +156,7 @@ class AuthViewModel(
 
             repository.insertUserProfile(userProfile)
             _registerError.value = null
-            onComplete(true, "Registered successfully")
+            onComplete(true, "Registration successful! Welcome to our fitness community, $name!")
         }
     }
 
@@ -161,7 +166,8 @@ class AuthViewModel(
             val passwordError = validatePassword(password)
 
             if (emailError != null || passwordError != null) {
-                _loginError.value = listOfNotNull(emailError, passwordError).joinToString("\n")
+                val errorMessages = listOfNotNull(emailError, passwordError)
+                _loginError.value = "Please fix the following issues:\n${errorMessages.joinToString("\n")}"
                 return@launch
             }
 
@@ -170,12 +176,10 @@ class AuthViewModel(
                     _currentUser.value = profile
                     _isLoggedIn.value = true
                     _loginError.value = null
-
-                    // Save the current user - this will set app_just_started to false
                     repository.saveCurrentUser(profile)
                 }
             } ?: run {
-                _loginError.value = "Invalid email or password"
+                _loginError.value = "Invalid email or password. Please check your credentials and try again."
             }
         }
     }

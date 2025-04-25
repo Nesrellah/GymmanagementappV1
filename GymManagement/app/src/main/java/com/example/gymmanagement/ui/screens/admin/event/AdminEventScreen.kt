@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -20,13 +19,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.gymmanagement.data.model.EventEntity
 import com.example.gymmanagement.utils.rememberImagePicker
 import com.example.gymmanagement.viewmodel.AdminEventViewModel
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 private val DeepBlue = Color(0xFF0000CD)
 private val LightBlue = Color(0xFFE6E9FD)
@@ -35,12 +35,10 @@ private val Green = Color(0xFF4CAF50)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminEventScreen(
-    onNavigateToWorkouts: () -> Unit,
-    onNavigateToProgress: () -> Unit
+    viewModel: AdminEventViewModel
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedEvent by remember { mutableStateOf<EventEntity?>(null) }
-    val viewModel: AdminEventViewModel = viewModel()
     val events by viewModel.events.collectAsState(initial = emptyList())
 
     Column(
@@ -62,36 +60,6 @@ fun AdminEventScreen(
                 fontWeight = FontWeight.Bold,
                 color = DeepBlue
             )
-            
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                IconButton(
-                    onClick = onNavigateToWorkouts,
-                    modifier = Modifier
-                        .background(LightBlue, CircleShape)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Workouts",
-                        tint = DeepBlue
-                    )
-                }
-                
-                IconButton(
-                    onClick = onNavigateToProgress,
-                    modifier = Modifier
-                        .background(LightBlue, CircleShape)
-                        .size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Person,
-                        contentDescription = "Progress",
-                        tint = DeepBlue
-                    )
-                }
-            }
         }
 
         Column(
@@ -661,76 +629,3 @@ fun EventCard(
     }
 }
 
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-fun AdminEventScreenPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            AdminEventScreen({}, {})
-        }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun EventFormPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            EventForm(onEventCreated = {})
-        }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun EventCardPreview() {
-    GymManagementAppTheme {
-        Surface(
-            modifier = Modifier.padding(16.dp),
-            color = MaterialTheme.colorScheme.background
-        ) {
-            EventCard(
-                event = EventEntity(
-                    id = 1,
-                    title = "Fitness Workshop",
-                    date = "2024-03-15",
-                    time = "10:00 AM",
-                    location = "Main Gym",
-                    imageUri = null
-                ),
-                onEditClick = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun EditEventDialogPreview() {
-    GymManagementAppTheme {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f))
-        ) {
-            EditEventDialog(
-                event = EventEntity(
-                    id = 1,
-                    title = "Fitness Workshop",
-                    date = "2024-03-15",
-                    time = "10:00 AM",
-                    location = "Main Gym",
-                    imageUri = null
-                ),
-                onDismissRequest = {},
-                onConfirm = {}
-            )
-        }
-    }
-}
