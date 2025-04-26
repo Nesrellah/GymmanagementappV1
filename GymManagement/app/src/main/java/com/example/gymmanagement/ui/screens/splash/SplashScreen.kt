@@ -160,10 +160,19 @@ fun SplashScreen(
     // Check login state and navigate accordingly
     LaunchedEffect(isLoggedIn, currentUser) {
         if (isLoggedIn && currentUser != null) {
-            val route = if (currentUser!!.role.lowercase() == "admin") AppRoutes.ADMIN_EVENT else AppRoutes.MEMBER_WORKOUT
-            navController.navigate(route) {
-                popUpTo(0) { inclusive = true }
-                launchSingleTop = true
+            // Only auto-navigate for non-admin users
+            if (currentUser!!.role.lowercase() != "admin") {
+                val route = AppRoutes.MEMBER_WORKOUT
+                navController.navigate(route) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                // For admin users, always go to login screen
+                navController.navigate(AppRoutes.LOGIN) {
+                    popUpTo(0) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
     }

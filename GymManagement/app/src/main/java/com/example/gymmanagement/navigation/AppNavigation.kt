@@ -16,25 +16,36 @@ import com.example.gymmanagement.ui.screens.admin.AdminScreen
 import com.example.gymmanagement.ui.screens.member.MemberScreen
 import com.example.gymmanagement.viewmodel.AuthViewModel
 import com.example.gymmanagement.GymManagementApp
+import com.example.gymmanagement.data.model.UserEntity
+import androidx.compose.runtime.State
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AppNavigation(app: GymManagementApp) {
     val navController = rememberNavController()
-    val authViewModel: AuthViewModel = viewModel(
-        factory = AuthViewModel.Factory(app.userRepository)
-    )
-
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-    val currentUser by authViewModel.currentUser.collectAsState()
+    val authViewModel: AuthViewModel = viewModel(factory = AuthViewModel.provideFactory(app))
+    
+    val isLoggedIn: State<Boolean> = authViewModel.isLoggedIn.collectAsState()
+    val currentUser: State<UserEntity?> = authViewModel.currentUser.collectAsState()
 
     // Handle initial navigation based on login state
-    LaunchedEffect(isLoggedIn, currentUser) {
-        if (isLoggedIn && currentUser != null) {
-            val route = if (currentUser!!.role.lowercase() == "admin") AppRoutes.ADMIN_WORKOUT else AppRoutes.MEMBER_WORKOUT
-            Log.d("AppNavigation", "Navigating to route: $route for user: ${currentUser!!.email}")
-            navController.navigate(route) {
-                popUpTo(0) { inclusive = true }
-                launchSingleTop = true
+    LaunchedEffect(isLoggedIn.value, currentUser.value) {
+        if (isLoggedIn.value && currentUser.value != null) {
+            // Only auto-navigate for non-admin users
+            if (currentUser.value?.role?.lowercase() != "admin") {
+                val route = AppRoutes.MEMBER_WORKOUT
+                Log.d("AppNavigation", "Initial navigation to member route: $route for user: ${currentUser.value?.email}")
+                navController.navigate(route) {
+                    popUpTo(AppRoutes.SPLASH) { inclusive = true }
+                    launchSingleTop = true
+                }
+            } else {
+                // For admin users, always go to login screen
+                Log.d("AppNavigation", "Admin user detected, navigating to login")
+                navController.navigate(AppRoutes.LOGIN) {
+                    popUpTo(AppRoutes.SPLASH) { inclusive = true }
+                    launchSingleTop = true
+                }
             }
         }
     }
@@ -44,7 +55,10 @@ fun AppNavigation(app: GymManagementApp) {
         startDestination = AppRoutes.SPLASH
     ) {
         composable(AppRoutes.SPLASH) {
-            SplashScreen(navController, authViewModel)
+            SplashScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
         }
 
         composable(AppRoutes.LOGIN) {
@@ -53,9 +67,8 @@ fun AppNavigation(app: GymManagementApp) {
                 viewModel = authViewModel,
                 onLoginSuccess = { isAdmin ->
                     val route = if (isAdmin) AppRoutes.ADMIN_WORKOUT else AppRoutes.MEMBER_WORKOUT
-                    Log.d("AppNavigation", "Login success, navigating to route: $route")
                     navController.navigate(route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(AppRoutes.LOGIN) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
@@ -69,6 +82,7 @@ fun AppNavigation(app: GymManagementApp) {
             )
         }
 
+        // Admin Routes
         composable(AppRoutes.ADMIN_WORKOUT) {
             AdminScreen(
                 navController = navController,
@@ -76,7 +90,43 @@ fun AppNavigation(app: GymManagementApp) {
             )
         }
 
+        composable(AppRoutes.ADMIN_EVENT) {
+            AdminScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
+        }
+
+        composable(AppRoutes.ADMIN_PROGRESS) {
+            AdminScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
+        }
+
+        composable(AppRoutes.ADMIN_MEMBER) {
+            AdminScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
+        }
+
+        // Member Routes
         composable(AppRoutes.MEMBER_WORKOUT) {
+            MemberScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
+        }
+
+        composable(AppRoutes.MEMBER_EVENT) {
+            MemberScreen(
+                navController = navController,
+                viewModel = authViewModel
+            )
+        }
+
+        composable(AppRoutes.MEMBER_PROFILE) {
             MemberScreen(
                 navController = navController,
                 viewModel = authViewModel
@@ -84,3 +134,5 @@ fun AppNavigation(app: GymManagementApp) {
         }
     }
 }
+
+

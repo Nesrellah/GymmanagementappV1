@@ -20,6 +20,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.repository.MemberWorkoutRepositoryImpl
 import com.example.gymmanagement.data.repository.UserRepositoryImpl
+import com.example.gymmanagement.data.repository.EventRepository
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.screens.member.workout.MemberWorkoutScreen
 import com.example.gymmanagement.ui.screens.member.profile.MemberProfileScreen
@@ -41,14 +42,16 @@ fun MemberScreen(
     val memberWorkoutDao = remember { db.memberWorkoutDao() }
     val userDao = remember { db.userDao() }
     val userProfileDao = remember { db.userProfileDao() }
+    val eventDao = remember { db.eventDao() }
 
     val workoutRepository = remember { MemberWorkoutRepositoryImpl(memberWorkoutDao) }
     val userRepository = remember { UserRepositoryImpl(userDao, userProfileDao, context) }
+    val eventRepository = remember { EventRepository(eventDao) }
 
     // Initialize ViewModels
     val memberWorkoutViewModel = remember { MemberWorkoutViewModel(workoutRepository) }
     val memberProfileViewModel = remember { MemberProfileViewModel(userRepository) }
-    val memberEventViewModel: MemberEventViewModel = viewModel()
+    val memberEventViewModel = remember { MemberEventViewModel(eventRepository) }
 
     // Check login state
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()

@@ -1,8 +1,12 @@
 package com.example.gymmanagement.viewmodel
 
+import android.app.Application
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.gymmanagement.GymManagementApp
 import com.example.gymmanagement.data.model.UserEntity
 import com.example.gymmanagement.data.model.UserProfile
 import com.example.gymmanagement.data.repository.UserRepository
@@ -14,13 +18,14 @@ import java.util.*
 import java.util.regex.Pattern
 
 class AuthViewModel(
-    private val repository: UserRepository
+    private val app: GymManagementApp,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     private val _isLoggedIn = MutableStateFlow(false)
     val isLoggedIn: StateFlow<Boolean> = _isLoggedIn
 
-    private val _currentUser = MutableStateFlow<UserProfile?>(null)
-    val currentUser: StateFlow<UserProfile?> = _currentUser
+    private val _currentUser = MutableStateFlow<UserEntity?>(null)
+    val currentUser: StateFlow<UserEntity?> = _currentUser
 
     private val _loginError = MutableStateFlow<String?>(null)
     val loginError: StateFlow<String?> = _loginError
@@ -28,19 +33,57 @@ class AuthViewModel(
     private val _registerError = MutableStateFlow<String?>(null)
     val registerError: StateFlow<String?> = _registerError
 
+    private val sharedPreferences = app.getSharedPreferences("auth_prefs", Context.MODE_PRIVATE)
+
     init {
-        checkLoginState()
+        loadSession()
+    }
+
+    private fun loadSession() {
+        val email = sharedPreferences.getString("user_email", null)
+        val role = sharedPreferences.getString("user_role", null)
+        
+        if (email != null && role != null) {
+            viewModelScope.launch {
+                try {
+                    val user = userRepository.getUserByEmail(email)
+                    if (user != null && user.role.lowercase() != "admin" && user.role.lowercase() == role.lowercase()) {
+                        _currentUser.value = user
+                        _isLoggedIn.value = true
+                        Log.d("AuthViewModel", "Session restored for user: $email with role: $role")
+                    } else {
+                        clearSession()
+                        Log.d("AuthViewModel", "Invalid session data found or admin user, clearing session")
+                    }
+                } catch (e: Exception) {
+                    Log.e("AuthViewModel", "Error loading session", e)
+                    clearSession()
+                }
+            }
+        }
     }
 
     fun checkLoginState() {
         viewModelScope.launch {
-            val profile = repository.getCurrentUser()
-            if (profile != null) {
-                _currentUser.value = profile
-                _isLoggedIn.value = true
-            } else {
-                _currentUser.value = null
-                _isLoggedIn.value = false
+            try {
+                val email = sharedPreferences.getString("user_email", null)
+                if (email != null) {
+                    val user = userRepository.getUserByEmail(email)
+                    if (user != null) {
+                        _currentUser.value = user
+                        _isLoggedIn.value = true
+                        Log.d("AuthViewModel", "Login state checked: User is logged in")
+                    } else {
+                        clearSession()
+                        Log.d("AuthViewModel", "Login state checked: User not found")
+                    }
+                } else {
+                    clearSession()
+                    Log.d("AuthViewModel", "Login state checked: No session found")
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error checking login state", e)
+                clearSession()
             }
         }
     }
@@ -94,130 +137,75 @@ class AuthViewModel(
         return null
     }
 
-    fun registerUser(
-        name: String, email: String, password: String,
-        age: String, height: String, weight: String,
-        role: String = "admin",
-        onComplete: (Boolean, String) -> Unit
-    ) {
-        viewModelScope.launch {
-            val nameError = validateName(name)
-            val emailError = validateEmail(email)
-            val passwordError = validatePassword(password)
-            val ageError = validateAge(age)
-            val heightError = validateHeight(height)
-            val weightError = validateWeight(weight)
-
-            if (nameError != null || emailError != null || passwordError != null ||
-                ageError != null || heightError != null || weightError != null) {
-                val errorMessages = listOfNotNull(
-                    nameError, emailError, passwordError,
-                    ageError, heightError, weightError
-                )
-                _registerError.value = "Please fix the following issues:\n${errorMessages.joinToString("\n")}"
-                onComplete(false, "Registration failed. Please check the form for errors.")
-                return@launch
-            }
-
-            val existingUser = repository.getUserByEmail(email)
-            if (existingUser != null) {
-                _registerError.value = "This email address is already registered. Please use a different email or try logging in."
-                onComplete(false, "Email already exists")
-                return@launch
-            }
-
-            val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-
-            val newUser = UserEntity(
-                id = 0,
-                name = name,
-                email = email,
-                password = password,
-                age = age.toInt(),
-                height = height.toFloat(),
-                weight = weight.toFloat(),
-                role = role,
-                joinDate = date
-            )
-
-            repository.insertUser(newUser)
-
-            val userProfile = UserProfile(
-                id = 0,
-                email = email,
-                name = name,
-                age = age.toInt(),
-                height = height.toFloat(),
-                weight = weight.toFloat(),
-                bmi = calculateBMI(height.toFloat(), weight.toFloat()),
-                joinDate = date,
-                role = role
-            )
-
-            repository.insertUserProfile(userProfile)
-            _registerError.value = null
-            onComplete(true, "Registration successful! Welcome to our fitness community, $name!")
-        }
-    }
-
-    fun login(email: String, password: String) {
-        viewModelScope.launch {
-            val emailError = validateEmail(email)
-            val passwordError = validatePassword(password)
-
-            if (emailError != null || passwordError != null) {
-                val errorMessages = listOfNotNull(emailError, passwordError)
-                _loginError.value = "Please fix the following issues:\n${errorMessages.joinToString("\n")}"
-                return@launch
-            }
-
-            repository.login(email, password)?.let { user ->
-                repository.getUserProfileByEmail(email)?.let { profile ->
-                    _currentUser.value = profile
-                    _isLoggedIn.value = true
-                    _loginError.value = null
-                    repository.saveCurrentUser(profile)
-                }
-            } ?: run {
-                _loginError.value = "Invalid email or password. Please check your credentials and try again."
-            }
-        }
-    }
-
     fun register(
         email: String,
         password: String,
         name: String,
-        phone: String? = null,
-        address: String? = null,
-        role: String
+        role: String,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
     ) {
         viewModelScope.launch {
-            val user = repository.getUserByEmail(email)
-            if (user == null) {
-                val profile = UserProfile(
+            try {
+                val existingUser = userRepository.getUserByEmail(email)
+                if (existingUser != null) {
+                    onError("Email already registered")
+                    return@launch
+                }
+
+                val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+                val newUser = UserEntity(
                     id = 0,
-                    email = email,
                     name = name,
-                    phone = phone,
-                    address = address,
-                    role = role
+                    email = email,
+                    password = password,
+                    age = 0,
+                    height = 0f,
+                    weight = 0f,
+                    role = role.lowercase(),
+                    joinDate = date
                 )
-                repository.insertUserProfile(profile)
-                _currentUser.value = profile
+                userRepository.insertUser(newUser)
+                _currentUser.value = newUser
                 _isLoggedIn.value = true
+                saveSession(newUser)
+                Log.d("AuthViewModel", "Registration successful for user: $email with role: ${newUser.role}")
+                onSuccess()
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Registration error", e)
+                onError(e.message ?: "Registration failed")
+            }
+        }
+    }
+
+    fun login(email: String, password: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val user = userRepository.getUserByEmail(email)
+                if (user != null && user.password == password) {
+                    _currentUser.value = user
+                    _isLoggedIn.value = true
+                    saveSession(user)
+                    Log.d("AuthViewModel", "Login successful for user: $email with role: ${user.role}")
+                    onSuccess()
+                } else {
+                    onError("Invalid email or password")
+                    Log.d("AuthViewModel", "Login failed: Invalid credentials")
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Login error", e)
+                onError(e.message ?: "Login failed")
             }
         }
     }
 
     fun logout() {
-        viewModelScope.launch {
-            repository.clearCurrentUser()
-            _isLoggedIn.value = false
-            _currentUser.value = null
-            _loginError.value = null
-            _registerError.value = null
-        }
+        clearSession()
+        _currentUser.value = null
+        _isLoggedIn.value = false
+        _loginError.value = null
+        _registerError.value = null
+        Log.d("AuthViewModel", "User logged out and session cleared")
     }
 
     private fun calculateBMI(height: Float, weight: Float): Float {
@@ -225,15 +213,32 @@ class AuthViewModel(
         return (weight / (heightInMeters * heightInMeters) * 10).toInt() / 10f
     }
 
-    class Factory(
-        private val repository: UserRepository
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(AuthViewModel::class.java)) {
-                return AuthViewModel(repository) as T
+    private fun saveSession(user: UserEntity) {
+        if (user.role.lowercase() != "admin") {
+            sharedPreferences.edit().apply {
+                putString("user_email", user.email)
+                putString("user_role", user.role.lowercase())
+                apply()
             }
-            throw IllegalArgumentException("Unknown ViewModel class")
+            Log.d("AuthViewModel", "Session saved for user: ${user.email} with role: ${user.role}")
+        } else {
+            Log.d("AuthViewModel", "Admin user detected, not saving session")
+        }
+    }
+
+    private fun clearSession() {
+        sharedPreferences.edit().clear().apply()
+        _currentUser.value = null
+        _isLoggedIn.value = false
+        Log.d("AuthViewModel", "Session cleared")
+    }
+
+    companion object {
+        fun provideFactory(app: GymManagementApp): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return AuthViewModel(app, app.userRepository) as T
+            }
         }
     }
 }

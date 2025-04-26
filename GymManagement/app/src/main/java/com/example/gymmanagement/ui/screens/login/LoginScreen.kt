@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.gymmanagement.R
+import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,7 +57,6 @@ fun LoginScreen(
         }
     }
 
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +67,7 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp) // New image height
+                .height(220.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.gym_logo),
@@ -95,7 +95,6 @@ fun LoginScreen(
         }
 
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
-
             Text(
                 text = "Welcome Back",
                 fontSize = 24.sp,
@@ -147,7 +146,7 @@ fun LoginScreen(
                     showError = false
                 },
                 label = { Text("Password") },
-                placeholder = { Text("Create Password") },
+                placeholder = { Text("Enter your Password") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = if (showError && viewModel.validatePassword(password) != null) 4.dp else 12.dp),
@@ -169,7 +168,6 @@ fun LoginScreen(
                 )
             }
 
-            // Reduced space between password and login button
             Spacer(modifier = Modifier.height(5.dp))
 
             // Login Button
@@ -179,7 +177,16 @@ fun LoginScreen(
                     if (viewModel.validateEmail(email) == null &&
                         viewModel.validatePassword(password) == null
                     ) {
-                        viewModel.login(email, password)
+                        viewModel.login(
+                            email = email,
+                            password = password,
+                            onSuccess = {
+                                Log.d("LoginScreen", "Login successful")
+                            },
+                            onError = { error ->
+                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                            }
+                        )
                     }
                 },
                 modifier = Modifier
@@ -209,7 +216,7 @@ fun LoginScreen(
                     fontWeight = FontWeight.Medium,
                     fontSize = 14.sp,
                     modifier = Modifier.clickable {
-                        navController.navigate("register")
+                        navController.navigate(AppRoutes.REGISTER)
                     }
                 )
             }

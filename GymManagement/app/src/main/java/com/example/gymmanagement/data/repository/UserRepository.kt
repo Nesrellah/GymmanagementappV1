@@ -59,23 +59,13 @@ class UserRepositoryImpl(
     override suspend fun getCurrentUser(): UserProfile? {
         val savedEmail = sharedPreferences.getString("user_email", null)
         val savedRole = sharedPreferences.getString("user_role", null)
-        val isAppJustStarted = sharedPreferences.getBoolean("app_just_started", true)
         
-        Log.d(TAG, "getCurrentUser - savedEmail: $savedEmail, savedRole: $savedRole, isAppJustStarted: $isAppJustStarted")
+        Log.d(TAG, "getCurrentUser - savedEmail: $savedEmail, savedRole: $savedRole")
         
         // If there's no saved email, return null
         if (savedEmail == null) {
             Log.d(TAG, "No saved email found, returning null")
             return null
-        }
-        
-        // For admin users, we need to check if the app was just started
-        if (savedRole?.lowercase() == "admin") {
-            if (isAppJustStarted) {
-                Log.d(TAG, "Admin session detected on app start, keeping session active")
-                // Instead of clearing the session, just set app_just_started to false
-                sharedPreferences.edit().putBoolean("app_just_started", false).apply()
-            }
         }
         
         // Try to get the user profile
@@ -94,19 +84,14 @@ class UserRepositoryImpl(
         sharedPreferences.edit().apply {
             putString("user_email", profile.email)
             putString("user_role", profile.role)
-            putBoolean("app_just_started", false)
             apply()
         }
-        Log.d(TAG, "User saved, app_just_started set to false")
+        Log.d(TAG, "User saved successfully")
     }
 
     override suspend fun clearCurrentUser() {
         Log.d(TAG, "Clearing current user session")
-        sharedPreferences.edit().apply {
-            clear()
-            // Don't set app_just_started to true here, let MainActivity handle it
-            apply()
-        }
+        sharedPreferences.edit().clear().apply()
         Log.d(TAG, "Session cleared")
     }
 }

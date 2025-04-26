@@ -21,23 +21,6 @@ class MainActivity : ComponentActivity() {
         Log.d(TAG, "onCreate called")
         app = application as GymManagementApp
 
-        // Use application context for SharedPreferences to ensure consistency
-        val sharedPreferences = applicationContext.getSharedPreferences("user_session", Context.MODE_PRIVATE)
-        
-        // Check if we have a valid session
-        val savedEmail = sharedPreferences.getString("user_email", null)
-        val savedRole = sharedPreferences.getString("user_role", null)
-        
-        Log.d(TAG, "Current session state - email: $savedEmail, role: $savedRole")
-        
-        // Only set app_just_started to true if there's no existing session
-        if (savedEmail == null) {
-            Log.d(TAG, "No existing session found, setting app_just_started to true")
-            sharedPreferences.edit().putBoolean("app_just_started", true).apply()
-        } else {
-            Log.d(TAG, "Existing session found, keeping app_just_started as is")
-        }
-
         setContent {
             GymManagementAppTheme {
                 Surface(
