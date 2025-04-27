@@ -38,6 +38,9 @@ fun RegisterScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+    var age by remember { mutableStateOf("") }
+    var height by remember { mutableStateOf("") }
+    var weight by remember { mutableStateOf("") }
     var showError by remember { mutableStateOf(false) }
     val registerError by viewModel.registerError.collectAsState()
     val context = LocalContext.current
@@ -65,6 +68,7 @@ fun RegisterScreen(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 24.dp)
         ) {
+            // Add spacing instead of offset
             Spacer(modifier = Modifier.height(10.dp))
 
             Box(
@@ -98,7 +102,7 @@ fun RegisterScreen(
                 modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
             )
 
-            // Name Field
+            // --- Name Field ---
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -122,7 +126,7 @@ fun RegisterScreen(
                 )
             }
 
-            // Email Field
+            // --- Email Field ---
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
@@ -146,7 +150,7 @@ fun RegisterScreen(
                 )
             }
 
-            // Password Field
+            // --- Password Field ---
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
@@ -171,7 +175,7 @@ fun RegisterScreen(
                 )
             }
 
-            // Confirm Password Field
+            // --- Confirm Password ---
             OutlinedTextField(
                 value = confirmPassword,
                 onValueChange = { confirmPassword = it },
@@ -179,7 +183,7 @@ fun RegisterScreen(
                 placeholder = { Text("Confirm your password") },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 16.dp),
+                    .padding(bottom = if (showError && password != confirmPassword) 4.dp else 16.dp),
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -196,7 +200,82 @@ fun RegisterScreen(
                 )
             }
 
-            // Register Button
+            // --- Age Field ---
+            OutlinedTextField(
+                value = age,
+                onValueChange = { age = it },
+                label = { Text("Age") },
+                placeholder = { Text("Enter your Age") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (showError && viewModel.validateAge(age) != null) 4.dp else 16.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0000CD),
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                isError = showError && viewModel.validateAge(age) != null
+            )
+            if (showError && viewModel.validateAge(age) != null) {
+                Text(
+                    text = viewModel.validateAge(age) ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            // --- Height Field ---
+            OutlinedTextField(
+                value = height,
+                onValueChange = { height = it },
+                label = { Text("Height (cm)") },
+                placeholder = { Text("Enter your height in cm") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (showError && viewModel.validateHeight(height) != null) 4.dp else 16.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0000CD),
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                isError = showError && viewModel.validateHeight(height) != null
+            )
+            if (showError && viewModel.validateHeight(height) != null) {
+                Text(
+                    text = viewModel.validateHeight(height) ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            // --- Weight Field ---
+            OutlinedTextField(
+                value = weight,
+                onValueChange = { weight = it },
+                label = { Text("Weight (kg)") },
+                placeholder = { Text("Enter your weight in kg") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = if (showError && viewModel.validateWeight(weight) != null) 4.dp else 16.dp),
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0000CD),
+                    unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
+                ),
+                isError = showError && viewModel.validateWeight(weight) != null
+            )
+            if (showError && viewModel.validateWeight(weight) != null) {
+                Text(
+                    text = viewModel.validateWeight(weight) ?: "",
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+
+            // --- Register Button ---
             Button(
                 onClick = {
                     showError = true
@@ -206,13 +285,18 @@ fun RegisterScreen(
                     }
                     if (viewModel.validateName(name) == null &&
                         viewModel.validateEmail(email) == null &&
-                        viewModel.validatePassword(password) == null
+                        viewModel.validatePassword(password) == null &&
+                        viewModel.validateAge(age) == null &&
+                        viewModel.validateHeight(height) == null &&
+                        viewModel.validateWeight(weight) == null
                     ) {
                         viewModel.register(
                             email = email,
                             password = password,
                             name = name,
-                            role = "member",
+                            age = age,
+                            height = height,
+                            weight = weight,
                             onSuccess = {
                                 Toast.makeText(context, "Registration successful!", Toast.LENGTH_SHORT).show()
                                 navController.navigate(AppRoutes.LOGIN) {
@@ -235,7 +319,7 @@ fun RegisterScreen(
                 Text("Register", fontSize = 16.sp)
             }
 
-            // Login Link
+            // --- Login Link ---
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -262,7 +346,7 @@ fun RegisterScreen(
         }
     }
 
-    // Show registration error toast
+    // Toast error
     registerError?.let { error ->
         if (error.isNotEmpty()) {
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()

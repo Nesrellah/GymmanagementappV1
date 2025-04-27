@@ -141,34 +141,58 @@ class AuthViewModel(
         email: String,
         password: String,
         name: String,
-        role: String,
+        role: String = "member", // Default role set to "member"
+        age: String,
+        height: String,
+        weight: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
         viewModelScope.launch {
             try {
+                // Check if the user already exists
                 val existingUser = userRepository.getUserByEmail(email)
                 if (existingUser != null) {
                     onError("Email already registered")
                     return@launch
                 }
 
+                // Validate and parse additional fields
+                val ageInt = age.toIntOrNull()
+                val heightFloat = height.toFloatOrNull()
+                val weightFloat = weight.toFloatOrNull()
+
+                if (ageInt == null || heightFloat == null || weightFloat == null) {
+                    onError("Invalid age, height, or weight values")
+                    return@launch
+                }
+
+                // Format the join date
                 val date = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+                // Create a new user entity
                 val newUser = UserEntity(
                     id = 0,
                     name = name,
                     email = email,
                     password = password,
-                    age = 0,
-                    height = 0f,
-                    weight = 0f,
-                    role = role.lowercase(),
+                    age = ageInt,
+                    height = heightFloat,
+                    weight = weightFloat,
+                    role = role.lowercase(), // Use the default role "member" if not provided
                     joinDate = date
                 )
+
+                // Insert the user into the repository
                 userRepository.insertUser(newUser)
+
+                // Update the current user and login state
                 _currentUser.value = newUser
                 _isLoggedIn.value = true
+
+                // Save the session
                 saveSession(newUser)
+
                 Log.d("AuthViewModel", "Registration successful for user: $email with role: ${newUser.role}")
                 onSuccess()
             } catch (e: Exception) {
