@@ -2,6 +2,7 @@ package com.example.gymmanagement.ui.screens.member.profile
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
@@ -44,18 +46,17 @@ fun MemberProfileScreen(
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Top App Bar with Logout Button
+        // Top Bar
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF0000CD))
-                .padding(6.dp)
+                .background(Color(0xFF1A18C6))
+                .padding(vertical = 24.dp, horizontal = 16.dp)
         ) {
             Text(
                 text = "Your profile",
                 color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium,
+                fontSize = 28.sp,
                 modifier = Modifier.align(Alignment.CenterStart)
             )
             IconButton(
@@ -68,6 +69,32 @@ fun MemberProfileScreen(
                     tint = Color.White
                 )
             }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Only show the icon when not editing
+        if (!isEditing) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clip(CircleShape)
+                        .border(8.dp, Color(0xFF1A18C6), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Person,
+                        contentDescription = "Profile",
+                        tint = Color(0xFF1A18C6),
+                        modifier = Modifier.size(100.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(24.dp))
         }
 
         userProfile?.let { profile ->
@@ -102,42 +129,20 @@ fun DisplayProfile(
     profile: UserProfile,
     onEditClick: () -> Unit
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(6.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        // Profile Icon
-        Box(
+        Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 24.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF0000CD)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Person,
-                    contentDescription = "Profile",
-                    tint = Color.White,
-                    modifier = Modifier.size(30.dp)
-                )
-            }
-        }
-
-        // Personal Information Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+                .shadow(8.dp, RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB))
         ) {
             Column(
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier.padding(20.dp)
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -146,26 +151,25 @@ fun DisplayProfile(
                 ) {
                     Text(
                         text = "Personal information",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.Black
                     )
                     IconButton(onClick = onEditClick) {
                         Icon(
                             imageVector = Icons.Default.Edit,
                             contentDescription = "Edit",
-                            tint = Color(0xFF0000CD)
+                            tint = Color.Black
                         )
                     }
                 }
-
-                Spacer(modifier = Modifier.height(6.dp))
-
+                Spacer(modifier = Modifier.height(8.dp))
                 ProfileField("Name:", profile.name)
                 ProfileField("Email:", profile.email)
                 profile.age?.let { ProfileField("Age:", "$it years") }
-                profile.height?.let { ProfileField("Height:", "$it cm") }
-                profile.weight?.let { ProfileField("Weight:", "$it kg") }
-                profile.bmi?.let { ProfileField("BMI:", String.format("%.1f", it)) }
+                profile.height?.let { ProfileField("Height:", "${it.toInt()}cm") }
+                profile.weight?.let { ProfileField("Weight:", "${it.toInt()} kg") }
+                profile.bmi?.let { ProfileField("BMI :", String.format("%.2f", it)) }
                 profile.joinDate?.let { ProfileField("Join Date:", it) }
             }
         }
@@ -184,107 +188,96 @@ fun EditProfile(
     var height by remember { mutableStateOf(profile.height?.toString() ?: "") }
     var weight by remember { mutableStateOf(profile.weight?.toString() ?: "") }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp)
     ) {
-        Text(
-            text = "Personal Information",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-
         Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+            modifier = Modifier
+                .fillMaxWidth()
+                .shadow(8.dp, RoundedCornerShape(16.dp)),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF8F9FB))
         ) {
             Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                modifier = Modifier.padding(24.dp)
             ) {
-                TextField(
+                Text(
+                    text = "Personal information",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+
+                // Name
+                Text("Name", fontWeight = FontWeight.Medium, color = Color.Black)
+                OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Name") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(4.dp)
-                )
-
-                TextField(
-                    value = age,
-                    onValueChange = { age = it },
-                    label = { Text("Age") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(4.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                TextField(
-                    value = height,
-                    onValueChange = { height = it },
-                    label = { Text("Height(cm)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(4.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                TextField(
-                    value = weight,
-                    onValueChange = { weight = it },
-                    label = { Text("Weight(kg)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = TextFieldDefaults.colors(
-                        unfocusedContainerColor = Color.White,
-                        focusedContainerColor = Color.White,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        focusedIndicatorColor = Color.Transparent
-                    ),
-                    shape = RoundedCornerShape(4.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true
+                )
+
+                // Age
+                Text("Age:", fontWeight = FontWeight.Medium, color = Color.Black)
+                OutlinedTextField(
+                    value = age,
+                    onValueChange = { age = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
+                // Height
+                Text("Height(cm):", fontWeight = FontWeight.Medium, color = Color.Black)
+                OutlinedTextField(
+                    value = height,
+                    onValueChange = { height = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
+                // Weight
+                Text("weight(kg):", fontWeight = FontWeight.Medium, color = Color.Black)
+                OutlinedTextField(
+                    value = weight,
+                    onValueChange = { weight = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(
+                    OutlinedButton(
                         onClick = onCancel,
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(4.dp),
-                        border = BorderStroke(1.dp, Color.Gray)
+                            .height(48.dp)
+                            .padding(end = 8.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        border = ButtonDefaults.outlinedButtonBorder
                     ) {
-                        Text(
-                            "Cancel",
-                            color = Color.Black
-                        )
+                        Text("cancel", color = Color.Black)
                     }
                     Button(
                         onClick = {
@@ -298,11 +291,13 @@ fun EditProfile(
                         },
                         modifier = Modifier
                             .weight(1f)
-                            .height(48.dp),
+                            .height(48.dp)
+                            .padding(start = 8.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF0000CD)
-                        ),
-                        shape = RoundedCornerShape(4.dp)
+                            containerColor = Color(0xFF1A18C6),
+                            contentColor = Color.White
+                        )
                     ) {
                         Text("Save")
                     }
@@ -317,18 +312,21 @@ fun ProfileField(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.Start
     ) {
         Text(
             text = label,
-            color = Color.Gray,
-            fontSize = 14.sp
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            fontSize = 16.sp,
+            modifier = Modifier.width(100.dp)
         )
         Text(
             text = value,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Medium
+            color = Color.Gray,
+            fontSize = 16.sp,
+            modifier = Modifier.padding(start = 8.dp)
         )
     }
 }
