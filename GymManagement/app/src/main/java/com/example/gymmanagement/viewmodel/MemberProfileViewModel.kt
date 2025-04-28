@@ -32,8 +32,6 @@ class MemberProfileViewModel(
             repository.getUserProfileByEmail(email)?.let { existingProfile ->
                 val updatedProfile = existingProfile.copy(
                     name = name,
-                    phone = phone,
-                    address = address,
                     role = role
                 )
                 repository.updateUserProfile(updatedProfile)
@@ -62,14 +60,19 @@ class MemberProfileViewModel(
                     height = height,
                     weight = weight,
                     bmi = bmi,
-                    phone = phone,
-                    address = address,
                     role = role,
                     joinDate = existingProfile.joinDate // Preserve the original join date
                 )
                 repository.updateUserProfile(updatedProfile)
                 _userProfile.value = updatedProfile
             }
+        }
+    }
+
+    fun getUserProfileByEmail(email: String) {
+        viewModelScope.launch {
+            val profile = repository.getUserProfileByEmail(email)
+            _userProfile.value = profile
         }
     }
 

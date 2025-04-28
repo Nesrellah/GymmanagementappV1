@@ -37,8 +37,6 @@ class AdminMemberViewModel(
                 id = 0,
                 email = email,
                 name = name,
-                phone = phone,
-                address = address,
                 role = "MEMBER"
             )
             repository.insertUserProfile(profile)

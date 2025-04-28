@@ -71,8 +71,6 @@ fun AdminMemberScreen(
                     viewModel.addMember(
                         email = profile.email,
                         name = profile.name,
-                        phone = profile.phone,
-                        address = profile.address
                     )
                 }
             )
@@ -184,8 +182,6 @@ fun MemberForm(
                     id = 0,
                     email = email,
                     name = name,
-                    phone = phone,
-                    address = address,
                     role = "MEMBER"
                 )
                 onMemberCreated(profile)
@@ -240,18 +236,6 @@ fun MemberCard(
                 text = "Email: ${member.email}",
                 style = MaterialTheme.typography.bodyLarge
             )
-            member.phone?.let { phone ->
-                Text(
-                    text = "Phone: $phone",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-            member.address?.let { address ->
-                Text(
-                    text = "Address: $address",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
             Text(
                 text = "Role: ${member.role}",
                 style = MaterialTheme.typography.bodyLarge
