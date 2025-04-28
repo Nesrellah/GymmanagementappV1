@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
+import kotlin.math.round
 
 class AuthViewModel(
     private val app: GymManagementApp,
@@ -185,6 +186,28 @@ class AuthViewModel(
 
                 // Insert the user into the repository
                 userRepository.insertUser(newUser)
+
+                // Calculate BMI
+                val heightM = heightFloat / 100f
+                val bmi = if (heightM > 0) {
+                    val rawBmi = weightFloat / (heightM * heightM)
+                    (round(rawBmi * 100) / 100)
+                } else null
+
+                // Insert into user_profiles
+                val newProfile = UserProfile(
+                    id = 0,
+                    email = newUser.email,
+                    name = newUser.name,
+                    age = newUser.age,
+                    height = newUser.height,
+                    weight = newUser.weight,
+                    bmi = bmi,
+                    role = newUser.role,
+                    joinDate = newUser.joinDate,
+                    membershipStatus = "active"
+                )
+                userRepository.insertUserProfile(newProfile)
 
                 // Update the current user and login state
                 _currentUser.value = newUser

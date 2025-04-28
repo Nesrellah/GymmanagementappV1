@@ -130,7 +130,7 @@ fun MemberScreen(
             composable(AppRoutes.MEMBER_PROFILE) {
                 currentUser?.let { user ->
                     MemberProfileScreen(
-                        traineeId = user.id.toString(),
+                        userEmail = user.email,
                         viewModel = memberProfileViewModel,
                         onLogout = {
                             viewModel.logout()

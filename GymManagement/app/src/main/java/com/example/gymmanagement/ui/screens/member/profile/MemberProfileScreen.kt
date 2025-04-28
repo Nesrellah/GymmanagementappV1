@@ -28,15 +28,15 @@ import com.example.gymmanagement.viewmodel.MemberProfileViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MemberProfileScreen(
-    traineeId: String,
+    userEmail: String,
     viewModel: MemberProfileViewModel = viewModel(),
     onLogout: () -> Unit = {}
 ) {
     var isEditing by remember { mutableStateOf(false) }
     val userProfile by viewModel.userProfile.collectAsState()
 
-    LaunchedEffect(traineeId) {
-        viewModel.getUserProfile(traineeId.toInt())
+    LaunchedEffect(userEmail) {
+        viewModel.getUserProfileByEmail(userEmail)
     }
 
     Column(
@@ -86,8 +86,6 @@ fun MemberProfileScreen(
                             age = updatedProfile.age,
                             height = updatedProfile.height,
                             weight = updatedProfile.weight,
-                            phone = updatedProfile.phone,
-                            address = updatedProfile.address,
                             role = updatedProfile.role
                         )
                         isEditing = false

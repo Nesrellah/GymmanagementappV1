@@ -43,8 +43,6 @@ class UserProfileViewModel(
             repository.getUserProfileByEmail(email)?.let { existingProfile ->
                 val updatedProfile = existingProfile.copy(
                     name = name,
-                    phone = phone,
-                    address = address,
                     role = role
                 )
                 repository.updateUserProfile(updatedProfile)
