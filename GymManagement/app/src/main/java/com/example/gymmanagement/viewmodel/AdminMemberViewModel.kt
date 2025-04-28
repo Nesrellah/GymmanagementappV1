@@ -21,37 +21,17 @@ class AdminMemberViewModel(
     private fun loadMembers() {
         viewModelScope.launch {
             repository.getAllUserProfiles().collect { profiles ->
-                _members.value = profiles.filter { it.role == "MEMBER" }
+                _members.value = profiles
             }
-        }
-    }
-
-    fun addMember(
-        email: String,
-        name: String,
-        phone: String? = null,
-        address: String? = null
-    ) {
-        viewModelScope.launch {
-            val profile = UserProfile(
-                id = 0,
-                email = email,
-                name = name,
-                role = "MEMBER"
-            )
-            repository.insertUserProfile(profile)
-        }
-    }
-
-    fun updateMember(profile: UserProfile) {
-        viewModelScope.launch {
-            repository.updateUserProfile(profile)
         }
     }
 
     fun deleteMember(profile: UserProfile) {
         viewModelScope.launch {
             repository.deleteUserProfile(profile)
+            repository.getUserByEmail(profile.email)?.let { userEntity ->
+                repository.deleteUser(userEntity)
+            }
         }
     }
 } 

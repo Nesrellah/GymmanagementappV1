@@ -11,6 +11,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.gymmanagement.navigation.AppNavigation
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
+import androidx.lifecycle.lifecycleScope
+import com.example.gymmanagement.data.database.AppDatabase
+import com.example.gymmanagement.data.model.UserEntity
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     private val TAG = "MainActivity"
@@ -31,5 +35,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+
+//        lifecycleScope.launch {
+//            val db = AppDatabase.getDatabase(applicationContext)
+//            val adminUser = UserEntity(
+//                id = 0,
+//                name = "Admin",
+//                email = "admin@gmail.com",
+//                password = "admin123",
+//                age = 30,
+//                height = 180f,
+//                weight = 75f,
+//                role = "admin",
+//                joinDate = "2024-06-01"
+//            )
+//            db.userDao().insertUser(adminUser)
+//        }
     }
 }

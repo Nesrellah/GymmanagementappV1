@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,6 +35,8 @@ fun AdminMemberScreen(
     viewModel: AdminMemberViewModel
 ) {
     val members by viewModel.members.collectAsState(initial = emptyList())
+    var searchId by remember { mutableStateOf("") }
+    var searchedMember by remember { mutableStateOf<UserProfile?>(null) }
 
     Column(
         modifier = Modifier
@@ -40,18 +44,17 @@ fun AdminMemberScreen(
             .background(Color.White)
     ) {
         // Top Navigation Bar
-        Row(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .background(Color(0xFF0000CD))
+                .padding(16.dp)
         ) {
             Text(
                 text = "Members",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = DeepBlue
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Medium
             )
         }
 
@@ -60,187 +63,153 @@ fun AdminMemberScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            // Find member section
             Text(
-                text = "Add Member",
-                style = MaterialTheme.typography.titleMedium.copy(color = Color.Blue),
-                modifier = Modifier.padding(bottom = 8.dp)
+                text = "Find member",
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.padding(bottom = 4.dp)
             )
-
-            MemberForm(
-                onMemberCreated = { profile ->
-                    viewModel.addMember(
-                        email = profile.email,
-                        name = profile.name,
-                    )
-                }
+            Text(
+                text = "Trainee ID",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 4.dp)
             )
+            OutlinedTextField(
+                value = searchId,
+                onValueChange = { searchId = it },
+                placeholder = { Text("1") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(4.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    unfocusedBorderColor = LightBlue,
+                    focusedBorderColor = DeepBlue
+                )
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Button(
+                onClick = {
+                    searchedMember = members.find { it.id.toString() == searchId }
+                },
+                modifier = Modifier
+                    .width(170.dp)
+                    .height(44.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = DeepBlue),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text("Search", fontSize = 18.sp)
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "All Members",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-            
-            Text(
-                text = "Manage your gym members",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            if (searchedMember != null) {
+                MemberDetailSection(searchedMember!!)
+            } else {
+                // Show the table
+                Text(
+                    text = "Members list",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
 
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(members) { member ->
-                    MemberCard(
-                        member = member,
-                        onEditClick = {
-                            // TODO: Implement edit functionality
+                // Table Header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(LightBlue)
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("ID", modifier = Modifier.weight(0.7f), fontWeight = FontWeight.Bold)
+                    Text("Name", modifier = Modifier.weight(2f), fontWeight = FontWeight.Bold)
+                    Text("Age", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                    Text("BMI", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.weight(0.5f)) // For delete icon
+                }
+
+                Divider()
+
+                LazyColumn(
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    items(members) { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(member.id.toString(), modifier = Modifier.weight(0.7f))
+                            Text(member.name, modifier = Modifier.weight(2f))
+                            Text(member.age?.toString() ?: "-", modifier = Modifier.weight(1f))
+                            Text(
+                                member.bmi?.let { String.format("%.2f", it) } ?: "-",
+                                modifier = Modifier.weight(1f)
+                            )
+                            IconButton(
+                                onClick = { viewModel.deleteMember(member) },
+                                modifier = Modifier.weight(0.5f)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete Member",
+                                    tint = Color.Red
+                                )
+                            }
                         }
-                    )
+                        Divider()
+                    }
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MemberForm(
-    onMemberCreated: (UserProfile) -> Unit
-) {
-    var email by remember { mutableStateOf("") }
-    var name by remember { mutableStateOf("") }
-    var phone by remember { mutableStateOf("") }
-    var address by remember { mutableStateOf("") }
-
-    Column(modifier = Modifier.fillMaxWidth()) {
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text("Email", fontSize = 12.sp) },
-            placeholder = { Text("Enter email", fontSize = 12.sp) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(4.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = LightBlue,
-                focusedBorderColor = DeepBlue
-            )
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            label = { Text("Name", fontSize = 12.sp) },
-            placeholder = { Text("Enter name", fontSize = 12.sp) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(4.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = LightBlue,
-                focusedBorderColor = DeepBlue
-            )
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = phone,
-            onValueChange = { phone = it },
-            label = { Text("Phone", fontSize = 12.sp) },
-            placeholder = { Text("Enter phone", fontSize = 12.sp) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(4.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = LightBlue,
-                focusedBorderColor = DeepBlue
-            )
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        OutlinedTextField(
-            value = address,
-            onValueChange = { address = it },
-            label = { Text("Address", fontSize = 12.sp) },
-            placeholder = { Text("Enter address", fontSize = 12.sp) },
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(4.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                unfocusedBorderColor = LightBlue,
-                focusedBorderColor = DeepBlue
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                val profile = UserProfile(
-                    id = 0,
-                    email = email,
-                    name = name,
-                    role = "MEMBER"
-                )
-                onMemberCreated(profile)
-                // Reset form
-                email = ""
-                name = ""
-                phone = ""
-                address = ""
-            },
-            enabled = email.isNotBlank() && name.isNotBlank(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = DeepBlue,
-                contentColor = Color.White
-            ),
-            shape = RoundedCornerShape(4.dp)
-        ) {
-            Text(
-                text = "Add Member",
-                fontSize = 14.sp,
-                maxLines = 1
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MemberCard(
-    member: UserProfile,
-    onEditClick: () -> Unit
-) {
-    Card(
+fun MemberDetailSection(member: UserProfile) {
+    Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(160.dp),
-        shape = RoundedCornerShape(8.dp)
+            .padding(start = 16.dp, top = 24.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = member.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Email: ${member.email}",
-                style = MaterialTheme.typography.bodyLarge
-            )
-            Text(
-                text = "Role: ${member.role}",
-                style = MaterialTheme.typography.bodyLarge
-            )
-        }
+        Text(
+            text = "Members Detail",
+            fontSize = 28.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+        DetailRow("Name", member.name)
+        DetailRow("Email", member.email)
+        DetailRow("Age", member.age?.toString() ?: "-")
+        DetailRow("Height", member.height?.let { "${it.toInt()} cm" } ?: "-")
+        DetailRow("Weight", member.weight?.let { "${it.toInt()} KG" } ?: "-")
+        DetailRow("BMI", member.bmi?.let { String.format("%.2f", it) } ?: "-")
     }
 }
+
+@Composable
+fun DetailRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.padding(vertical = 6.dp)
+    ) {
+        Text(
+            text = label,
+            fontSize = 22.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            modifier = Modifier.width(90.dp)
+        )
+        Text(
+            text = value,
+            fontSize = 22.sp,
+            color = Color.Gray,
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+    }
+}
+
+
 

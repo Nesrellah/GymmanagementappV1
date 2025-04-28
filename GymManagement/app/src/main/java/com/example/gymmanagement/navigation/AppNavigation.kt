@@ -31,18 +31,13 @@ fun AppNavigation(app: GymManagementApp) {
     // Handle initial navigation based on login state
     LaunchedEffect(isLoggedIn.value, currentUser.value) {
         if (isLoggedIn.value && currentUser.value != null) {
-            // Only auto-navigate for non-admin users
-            if (currentUser.value?.role?.lowercase() != "admin") {
-                val route = AppRoutes.MEMBER_WORKOUT
-                Log.d("AppNavigation", "Initial navigation to member route: $route for user: ${currentUser.value?.email}")
-                navController.navigate(route) {
+            if (currentUser.value?.role?.lowercase() == "admin") {
+                navController.navigate(AppRoutes.ADMIN_WORKOUT) {
                     popUpTo(AppRoutes.SPLASH) { inclusive = true }
                     launchSingleTop = true
                 }
             } else {
-                // For admin users, always go to login screen
-                Log.d("AppNavigation", "Admin user detected, navigating to login")
-                navController.navigate(AppRoutes.LOGIN) {
+                navController.navigate(AppRoutes.MEMBER_WORKOUT) {
                     popUpTo(AppRoutes.SPLASH) { inclusive = true }
                     launchSingleTop = true
                 }
