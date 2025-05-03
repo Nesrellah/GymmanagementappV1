@@ -6,14 +6,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WorkoutDao {
+    @Query("SELECT * FROM workouts WHERE traineeId = :traineeId")
+    fun getWorkoutsByTraineeId(traineeId: String): Flow<List<Workout>>
+
     @Query("SELECT * FROM workouts")
     fun getAllWorkouts(): Flow<List<Workout>>
 
     @Query("SELECT * FROM workouts WHERE id = :id")
     suspend fun getWorkoutById(id: Int): Workout?
-
-    @Query("SELECT * FROM workouts WHERE traineeId = :traineeId")
-    suspend fun getWorkoutsByTraineeId(traineeId: String): List<Workout>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWorkout(workout: Workout)

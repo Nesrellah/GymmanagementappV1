@@ -1,5 +1,6 @@
 package com.example.gymmanagement.ui.screens.member.workout
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,19 +15,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.gymmanagement.R
-import com.example.gymmanagement.data.model.MemberWorkout
-import com.example.gymmanagement.data.repository.MemberWorkoutRepository
-import com.example.gymmanagement.data.repository.MemberWorkoutRepositoryImpl
-import com.example.gymmanagement.data.dao.MemberWorkoutDao
-import com.example.gymmanagement.ui.theme.GymManagementAppTheme
+import coil.compose.AsyncImage
+import com.example.gymmanagement.data.model.Workout
 import com.example.gymmanagement.viewmodel.MemberWorkoutViewModel
-import kotlinx.coroutines.flow.flowOf
+import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import androidx.compose.foundation.Image
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
@@ -38,6 +34,11 @@ fun MemberWorkoutScreen(
 ) {
     val workouts by viewModel.workouts.collectAsState()
     val progress by viewModel.progress.collectAsState()
+
+    // Add logging
+    LaunchedEffect(workouts) {
+        Log.d("MemberWorkoutScreen", "Current workouts: $workouts")
+    }
 
     Column(
         modifier = Modifier
@@ -142,72 +143,71 @@ fun MemberWorkoutScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutCard(
-    workout: MemberWorkout,
+    workout: Workout,
     onToggleCompletion: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .height(150.dp),
+        shape = RoundedCornerShape(8.dp),
+        onClick = onToggleCompletion
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // Background Image
-            Image(
-                painter = painterResource(id = R.drawable.gym_logo),
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Background image
+            AsyncImage(
+                model = workout.imageUri,
                 contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
             )
 
-            // Overlay
+            // Content overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.4f))
-            )
-
-            // Content
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .padding(16.dp)
             ) {
-                // Top Row with Title and Completion Status
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Text(
-                        text = workout.title,
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    if (workout.isCompleted) {
-                        Icon(
-                            imageVector = Icons.Default.Check,
-                            contentDescription = "Completed",
-                            tint = Color.Green,
-                            modifier = Modifier.size(24.dp)
+                Column {
+                    // Top Row with Title and Completion Status
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = workout.eventTitle,
+                            color = Color.White,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
                         )
+                        if (workout.isCompleted) {
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Completed",
+                                tint = Color.Green,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
-                }
 
-                // Bottom Row with Workout Details
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    WorkoutInfo("${workout.sets} sets")
-                    WorkoutInfo("${workout.repsOrSecs} reps")
-                    WorkoutInfo("${workout.restTime}s rest")
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    // Bottom Row with Workout Details
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        WorkoutInfo("${workout.sets} sets")
+                        WorkoutInfo("${workout.repsOrSecs} reps")
+                        WorkoutInfo("${workout.restTime}s rest")
+                    }
                 }
             }
         }
@@ -215,7 +215,7 @@ fun WorkoutCard(
 }
 
 @Composable
-fun WorkoutInfo(text: String) {
+private fun WorkoutInfo(text: String) {
     Surface(
         color = Color.White.copy(alpha = 0.9f),
         shape = RoundedCornerShape(4.dp)
@@ -229,52 +229,4 @@ fun WorkoutInfo(text: String) {
     }
 }
 
-@Preview(showBackground = true, widthDp = 360)
-@Composable
-fun WorkoutCardPreview() {
-    GymManagementAppTheme {
-        WorkoutCard(
-            workout = MemberWorkout(
-                id = 1,
-                title = "Dead Lift",
-                sets = 4,
-                repsOrSecs = 10,
-                restTime = 60,
-                imageUri = null,
-                traineeId = "TR001",
-                isCompleted = false
-            ),
-            onToggleCompletion = {}
-        )
-    }
-}
-
-class PreviewMemberWorkoutProvider : PreviewParameterProvider<MemberWorkoutViewModel> {
-    override val values = sequenceOf(
-        MemberWorkoutViewModel(
-            MemberWorkoutRepositoryImpl(
-                object : MemberWorkoutDao {
-                    override fun getWorkoutsForTrainee(traineeId: String) = flowOf(MemberWorkoutViewModel.previewWorkouts)
-                    override fun getAllWorkouts() = flowOf(MemberWorkoutViewModel.previewWorkouts)
-                    override suspend fun insertWorkout(workout: MemberWorkout) {}
-                    override suspend fun updateWorkout(workout: MemberWorkout) {}
-                    override suspend fun deleteWorkout(workout: MemberWorkout) {}
-                    override suspend fun updateWorkoutCompletion(workoutId: Int, isCompleted: Boolean) {}
-                    override fun getCompletedWorkoutsCount(traineeId: String) = flowOf(1)
-                    override fun getTotalWorkoutsCount(traineeId: String) = flowOf(3)
-                }
-            )
-        )
-    )
-}
-
-@Preview(showBackground = true, widthDp = 360, heightDp = 800)
-@Composable
-fun MemberWorkoutScreenPreview(
-    @PreviewParameter(PreviewMemberWorkoutProvider::class) viewModel: MemberWorkoutViewModel
-) {
-    GymManagementAppTheme {
-        MemberWorkoutScreen(viewModel = viewModel)
-    }
-}
 

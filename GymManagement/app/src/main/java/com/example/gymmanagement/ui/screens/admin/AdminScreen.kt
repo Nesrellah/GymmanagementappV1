@@ -143,7 +143,15 @@ fun AdminScreen(
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(AppRoutes.ADMIN_WORKOUT) {
-                AdminWorkoutScreen(viewModel = adminWorkoutViewModel)
+                AdminWorkoutScreen(
+                    viewModel = adminWorkoutViewModel,
+                    onLogoutClick = {
+                        viewModel.logout()
+                        navController.navigate(AppRoutes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
             }
             composable(AppRoutes.ADMIN_EVENT) {
                 AdminEventScreen(viewModel = adminEventViewModel)

@@ -21,7 +21,7 @@ import com.example.gymmanagement.data.model.TraineeProgress
         Workout::class,
         TraineeProgress::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

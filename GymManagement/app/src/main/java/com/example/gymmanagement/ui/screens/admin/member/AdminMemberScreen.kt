@@ -107,62 +107,62 @@ fun AdminMemberScreen(
                 MemberDetailSection(searchedMember!!)
             } else {
                 // Show the table
-                Text(
-                    text = "Members list",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
+            Text(
+                text = "Members list",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
 
-                // Table Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(LightBlue)
-                        .padding(vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("ID", modifier = Modifier.weight(0.7f), fontWeight = FontWeight.Bold)
-                    Text("Name", modifier = Modifier.weight(2f), fontWeight = FontWeight.Bold)
-                    Text("Age", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                    Text("BMI", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.weight(0.5f)) // For delete icon
-                }
+            // Table Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(LightBlue)
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("ID", modifier = Modifier.weight(0.7f), fontWeight = FontWeight.Bold)
+                Text("Name", modifier = Modifier.weight(2f), fontWeight = FontWeight.Bold)
+                Text("Age", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                Text("BMI", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.weight(0.5f)) // For delete icon
+            }
 
-                Divider()
+            Divider()
 
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(0.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(members) { member ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(member.id.toString(), modifier = Modifier.weight(0.7f))
-                            Text(member.name, modifier = Modifier.weight(2f))
-                            Text(member.age?.toString() ?: "-", modifier = Modifier.weight(1f))
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(members) { member ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(member.id.toString(), modifier = Modifier.weight(0.7f))
+                        Text(member.name, modifier = Modifier.weight(2f))
+                        Text(member.age?.toString() ?: "-", modifier = Modifier.weight(1f))
                             Text(
                                 member.bmi?.let { String.format("%.2f", it) } ?: "-",
                                 modifier = Modifier.weight(1f)
                             )
-                            IconButton(
-                                onClick = { viewModel.deleteMember(member) },
-                                modifier = Modifier.weight(0.5f)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete Member",
-                                    tint = Color.Red
-                                )
-                            }
+                        IconButton(
+                            onClick = { viewModel.deleteMember(member) },
+                            modifier = Modifier.weight(0.5f)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Delete Member",
+                                tint = Color.Red
+                            )
                         }
-                        Divider()
                     }
+                    Divider()
                 }
             }
+        }
         }
     }
 }
