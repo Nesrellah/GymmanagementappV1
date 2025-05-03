@@ -30,6 +30,7 @@ import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.clip
 
 private val DeepBlue = Color(0xFF0000CD)
 private val LightBlue = Color(0xFFE6E9FD)
@@ -94,12 +95,6 @@ fun AdminEventScreen(
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(bottom = 4.dp)
             )
-            
-            Text(
-                text = "Join us for these exciting events",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
 
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -152,47 +147,42 @@ fun EventForm(
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
-        Card(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(150.dp)
+                .height(180.dp)
+                .background(Color(0xFF9DB7F5), shape = RoundedCornerShape(16.dp))
                 .clickable { imagePicker.launch("image/*") },
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = LightBlue)
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (imageUri != null) {
-                    AsyncImage(
-                        model = imageUri,
-                        contentDescription = null,
-                        modifier = Modifier.matchParentSize(),
-                        contentScale = ContentScale.Crop
+            if (imageUri != null) {
+                AsyncImage(
+                    model = imageUri,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(
+                        imageVector = Icons.Filled.Image,
+                        contentDescription = "Add Image",
+                        tint = Color(0xFF1A18C6),
+                        modifier = Modifier.size(48.dp)
                     )
-                } else {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Add Image",
-                            tint = DeepBlue,
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Text(
-                            text = "Tap to add an image",
-                            color = DeepBlue,
-                            fontSize = 12.sp
-                        )
-                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Tap to add an image",
+                        color = Color(0xFF444444),
+                        fontSize = 18.sp
+                    )
                 }
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
+        Spacer(modifier = Modifier.height(6.dp))
         OutlinedTextField(
             value = eventTitle,
             onValueChange = { eventTitle = it },
@@ -205,9 +195,7 @@ fun EventForm(
                 focusedBorderColor = DeepBlue
             )
         )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
+        Spacer(modifier = Modifier.height(3.dp))
         OutlinedTextField(
             value = date,
             onValueChange = { date = it },
@@ -220,9 +208,7 @@ fun EventForm(
                 focusedBorderColor = DeepBlue
             )
         )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
+        Spacer(modifier = Modifier.height(3.dp))
         OutlinedTextField(
             value = time,
             onValueChange = { time = it },
@@ -235,9 +221,7 @@ fun EventForm(
                 focusedBorderColor = DeepBlue
             )
         )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
+        Spacer(modifier = Modifier.height(3.dp))
         OutlinedTextField(
             value = location,
             onValueChange = { location = it },
@@ -250,9 +234,7 @@ fun EventForm(
                 focusedBorderColor = DeepBlue
             )
         )
-
         Spacer(modifier = Modifier.height(8.dp))
-
         Button(
             onClick = {
                 val event = EventEntity(
@@ -347,41 +329,37 @@ fun EditEventDialog(
                     if (savedPath != null) imageUri = Uri.parse(savedPath)
                 }
 
-                Card(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(150.dp)
+                        .height(180.dp)
+                        .background(Color(0xFF9DB7F5), shape = RoundedCornerShape(16.dp))
                         .clickable { imagePicker.launch("image/*") },
-                    shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightBlue)
+                    contentAlignment = Alignment.Center
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (imageUri != null) {
-                            AsyncImage(
-                                model = imageUri,
-                                contentDescription = null,
-                                modifier = Modifier.matchParentSize(),
-                                contentScale = ContentScale.Crop
+                    if (imageUri != null) {
+                        AsyncImage(
+                            model = imageUri,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(16.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Filled.Image,
+                                contentDescription = "Add Image",
+                                tint = Color(0xFF1A18C6),
+                                modifier = Modifier.size(48.dp)
                             )
-                        } else {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Person,
-                                    contentDescription = "Add Image",
-                                    tint = DeepBlue,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Text(
-                                    text = "Tap to add an image",
-                                    color = DeepBlue,
-                                    fontSize = 12.sp
-                                )
-                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Tap to add an image",
+                                color = Color(0xFF444444),
+                                fontSize = 18.sp
+                            )
                         }
                     }
                 }

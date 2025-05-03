@@ -40,19 +40,24 @@ fun AdminProgressScreen(
             .background(Color.White)
     ) {
         // Top Navigation Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            color = DeepBlue,
+            shadowElevation = 4.dp
         ) {
-            Text(
-                text = "Progress",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = DeepBlue
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Progress",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
 
         Column(
