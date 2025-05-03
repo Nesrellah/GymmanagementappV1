@@ -16,9 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import com.example.gymmanagement.data.model.EventEntity
 import com.example.gymmanagement.utils.rememberImagePicker
@@ -27,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import androidx.compose.ui.platform.LocalContext
 
 private val DeepBlue = Color(0xFF0000CD)
 private val LightBlue = Color(0xFFE6E9FD)
@@ -47,19 +50,24 @@ fun AdminEventScreen(
             .background(Color.White)
     ) {
         // Top Navigation Bar
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            color = DeepBlue,
+            shadowElevation = 4.dp
         ) {
-            Text(
-                text = "Events",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = DeepBlue
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Events",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White // White text
+                )
+            }
         }
 
         Column(
@@ -70,7 +78,7 @@ fun AdminEventScreen(
             Text(
                 text = "Add Event",
                 style = MaterialTheme.typography.titleMedium.copy(color = Color.Blue),
-                modifier = Modifier.padding(bottom = 8.dp)
+                modifier = Modifier.padding(bottom = 4.dp)
             )
 
             EventForm(
@@ -79,7 +87,7 @@ fun AdminEventScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text(
                 text = "Upcoming Events",
@@ -114,7 +122,11 @@ fun AdminEventScreen(
             event = selectedEvent,
             onDismissRequest = { showEditDialog = false },
             onConfirm = { updatedEvent ->
-                viewModel.updateEvent(updatedEvent)
+                if (updatedEvent.title == "DELETE_EVENT") {
+                    selectedEvent?.let { viewModel.deleteEvent(it) }
+                } else {
+                    viewModel.updateEvent(updatedEvent)
+                }
                 showEditDialog = false
             }
         )
@@ -132,8 +144,11 @@ fun EventForm(
     var location by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     
+    val context = LocalContext.current
+    val imagePickerUtil = remember { com.example.gymmanagement.utils.ImagePicker(context) }
     val imagePicker = rememberImagePicker { uri ->
-        imageUri = uri
+        val savedPath = imagePickerUtil.saveImageToInternalStorage(uri)
+        if (savedPath != null) imageUri = Uri.parse(savedPath)
     }
 
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -153,7 +168,7 @@ fun EventForm(
                     AsyncImage(
                         model = imageUri,
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.matchParentSize(),
                         contentScale = ContentScale.Crop
                     )
                 } else {
@@ -176,7 +191,7 @@ fun EventForm(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         OutlinedTextField(
             value = eventTitle,
@@ -191,7 +206,7 @@ fun EventForm(
             )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         OutlinedTextField(
             value = date,
@@ -206,7 +221,7 @@ fun EventForm(
             )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         OutlinedTextField(
             value = time,
@@ -221,7 +236,7 @@ fun EventForm(
             )
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
         OutlinedTextField(
             value = location,
@@ -236,7 +251,7 @@ fun EventForm(
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         Button(
             onClick = {
@@ -282,24 +297,42 @@ fun EditEventDialog(
     onDismissRequest: () -> Unit,
     onConfirm: (EventEntity) -> Unit
 ) {
-    Dialog(onDismissRequest = onDismissRequest) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Surface(
             modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            shape = RoundedCornerShape(8.dp),
+                .fillMaxSize()
+                .background(Color.White),
+            shape = RoundedCornerShape(0.dp),
             color = Color.White
         ) {
             Column(
                 modifier = Modifier
+                    .fillMaxSize()
                     .padding(16.dp)
-                    .fillMaxWidth()
             ) {
-                Text(
-                    text = "Edit Event",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Edit Event",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = DeepBlue
+                    )
+                    IconButton(onClick = onDismissRequest) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = Color.Black
+                        )
+                    }
+                }
 
                 var eventTitle by remember { mutableStateOf(event?.title ?: "") }
                 var date by remember { mutableStateOf(event?.date ?: "") }
@@ -307,8 +340,11 @@ fun EditEventDialog(
                 var location by remember { mutableStateOf(event?.location ?: "") }
                 var imageUri by remember { mutableStateOf<Uri?>(event?.imageUri?.let { Uri.parse(it) }) }
 
+                val context = LocalContext.current
+                val imagePickerUtil = remember { com.example.gymmanagement.utils.ImagePicker(context) }
                 val imagePicker = rememberImagePicker { uri ->
-                    imageUri = uri
+                    val savedPath = imagePickerUtil.saveImageToInternalStorage(uri)
+                    if (savedPath != null) imageUri = Uri.parse(savedPath)
                 }
 
                 Card(
@@ -327,7 +363,7 @@ fun EditEventDialog(
                             AsyncImage(
                                 model = imageUri,
                                 contentDescription = null,
-                                modifier = Modifier.fillMaxSize(),
+                                modifier = Modifier.matchParentSize(),
                                 contentScale = ContentScale.Crop
                             )
                         } else {
@@ -433,11 +469,11 @@ fun EditEventDialog(
                                 onConfirm(
                                     EventEntity(
                                         id = id,
-                                        title = eventTitle,
-                                        date = date,
-                                        time = time,
-                                        location = location,
-                                        imageUri = imageUri?.toString()
+                                        title = "DELETE_EVENT",
+                                        date = "",
+                                        time = "",
+                                        location = "",
+                                        imageUri = ""
                                     )
                                 )
                             }
@@ -491,138 +527,168 @@ fun EditEventDialog(
 @Composable
 fun EventCard(
     event: EventEntity,
-    onEditClick: () -> Unit
+    onEditClick: (EventEntity) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(160.dp),
-        shape = RoundedCornerShape(8.dp)
+            .height(170.dp)
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
-        Box {
-            if (event.imageUri != null) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Background Image or fallback color
+            if (!event.imageUri.isNullOrEmpty()) {
                 AsyncImage(
                     model = event.imageUri,
                     contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.matchParentSize(),
                     contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White) // fallback color if no image
                 )
             }
 
+            // Top right: Edit icon in white rounded box
+            Surface(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(8.dp),
+                color = Color.White.copy(alpha = 0.95f),
+                shape = RoundedCornerShape(10.dp),
+                shadowElevation = 2.dp
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                ) {
+                    IconButton(onClick = { onEditClick(event) }, modifier = Modifier.size(24.dp)) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Edit",
+                            tint = Color.Black,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
+
+            // Bottom: Info in a single white rounded box
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
             ) {
                 Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier
+                        .widthIn(max = 320.dp)
                 ) {
+                    // Title row
                     Surface(
-                        color = Color.White.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(4.dp)
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
                         Text(
                             text = event.title,
                             color = Color.Black,
-                            fontSize = 16.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                         )
                     }
-
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Date row
                     Surface(
-                        color = Color.White.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(4.dp)
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DateRange,
-                                contentDescription = "Date",
+                                contentDescription = null,
                                 tint = Color.Black,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = event.date,
                                 color = Color.Black,
-                                fontSize = 14.sp
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
-
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Time row
                     Surface(
-                        color = Color.White.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(4.dp)
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = "Time",
+                                imageVector = Icons.Default.AccessTime,
+                                contentDescription = null,
                                 tint = Color.Black,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = event.time,
                                 color = Color.Black,
-                                fontSize = 14.sp
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
                     }
-
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Location row (taller)
                     Surface(
-                        color = Color.White.copy(alpha = 0.9f),
-                        shape = RoundedCornerShape(4.dp)
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp) // extra vertical padding
                         ) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
-                                contentDescription = "Location",
+                                contentDescription = null,
                                 tint = Color.Black,
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(14.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = event.location,
                                 color = Color.Black,
-                                fontSize = 14.sp
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.offset(y = (-5).dp)
                             )
                         }
                     }
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                IconButton(
-                    onClick = onEditClick,
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(Color.White, RoundedCornerShape(4.dp))
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        tint = Color.Black,
-                        modifier = Modifier.size(20.dp)
-                    )
                 }
             }
         }
