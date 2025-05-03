@@ -37,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.ExitToApp
 
 private val PrimaryBlue = Color(0xFF0000FF)
 private val BackgroundGray = Color(0xFFF5F5F5)
@@ -45,7 +46,8 @@ private val CardBlue = Color(0xFFE6E9FD)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminWorkoutScreen(
-    viewModel: AdminWorkoutViewModel
+    viewModel: AdminWorkoutViewModel,
+    onLogoutClick: () -> Unit
 ) {
     var imageUri by remember { mutableStateOf<Uri?>(null) }
     val context = LocalContext.current
@@ -73,12 +75,29 @@ fun AdminWorkoutScreen(
                 .background(Color(0xFF0000CD))
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Workouts",
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Workouts",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Medium
+                )
+                IconButton(
+                    onClick = onLogoutClick,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ExitToApp,
+                        contentDescription = "Logout"
+                    )
+                }
+            }
         }
         Column(
             modifier = Modifier
@@ -203,7 +222,7 @@ fun AdminWorkoutScreen(
                     val workout = Workout(
                         id = 0,
                         eventTitle = eventTitle,
-                        traineeId = traineeId,
+                        traineeId = traineeId.toIntOrNull() ?: 0,
                         sets = sets.toIntOrNull() ?: 0,
                         repsOrSecs = repsOrSecs.toIntOrNull() ?: 0,
                         restTime = restTime.toIntOrNull() ?: 0,
@@ -307,4 +326,3 @@ fun WorkoutCard(
         }
     }
 }
-

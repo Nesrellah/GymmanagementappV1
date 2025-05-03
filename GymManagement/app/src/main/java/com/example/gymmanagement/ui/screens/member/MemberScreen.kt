@@ -11,16 +11,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.gymmanagement.data.database.AppDatabase
-import com.example.gymmanagement.data.repository.MemberWorkoutRepositoryImpl
-import com.example.gymmanagement.data.repository.UserRepositoryImpl
+import com.example.gymmanagement.data.repository.WorkoutRepositoryImpl
 import com.example.gymmanagement.data.repository.EventRepository
+import com.example.gymmanagement.data.repository.UserRepositoryImpl
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.screens.member.workout.MemberWorkoutScreen
 import com.example.gymmanagement.ui.screens.member.profile.MemberProfileScreen
@@ -39,23 +38,34 @@ fun MemberScreen(
 
     // Initialize database and repositories
     val db = AppDatabase.getDatabase(context)
-    val memberWorkoutDao = remember { db.memberWorkoutDao() }
+    val workoutDao = remember { db.workoutDao() }
+    val eventDao = remember { db.eventDao() }
     val userDao = remember { db.userDao() }
     val userProfileDao = remember { db.userProfileDao() }
-    val eventDao = remember { db.eventDao() }
 
-    val workoutRepository = remember { MemberWorkoutRepositoryImpl(memberWorkoutDao) }
-    val userRepository = remember { UserRepositoryImpl(userDao, userProfileDao, context) }
+    val workoutRepository = remember { WorkoutRepositoryImpl(workoutDao) }
     val eventRepository = remember { EventRepository(eventDao) }
+    val userRepository = remember { UserRepositoryImpl(userDao, userProfileDao, context) }
 
     // Initialize ViewModels
-    val memberWorkoutViewModel = remember { MemberWorkoutViewModel(workoutRepository) }
-    val memberProfileViewModel = remember { MemberProfileViewModel(userRepository) }
-    val memberEventViewModel = remember { MemberEventViewModel(eventRepository) }
+    val currentUser by viewModel.currentUser.collectAsState()
+    
+    // Create ViewModels
+    val memberWorkoutViewModel = remember(currentUser?.email) { 
+        MemberWorkoutViewModel(
+            repository = workoutRepository,
+            currentUserEmail = currentUser?.email ?: ""
+        )
+    }
+    val memberEventViewModel = remember {
+        MemberEventViewModel(eventRepository)
+    }
+    val memberProfileViewModel = remember {
+        MemberProfileViewModel(userRepository)
+    }
 
     // Check login state
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
-    val currentUser by viewModel.currentUser.collectAsState()
 
     LaunchedEffect(isLoggedIn, currentUser) {
         if (!isLoggedIn || currentUser == null || currentUser?.role?.lowercase() != "member") {
@@ -76,28 +86,33 @@ fun MemberScreen(
         }
     }
 
+    // Bottom navigation items
+    val bottomNavItems = listOf(
+        BottomNavItem(
+            label = "Workout",
+            icon = Icons.Default.FitnessCenter,
+            route = AppRoutes.MEMBER_WORKOUT
+        ),
+        BottomNavItem(
+            label = "Events",
+            icon = Icons.Default.Event,
+            route = AppRoutes.MEMBER_EVENT
+        ),
+        BottomNavItem(
+            label = "Profile",
+            icon = Icons.Default.Person,
+            route = AppRoutes.MEMBER_PROFILE
+        )
+    )
+
     Scaffold(
         bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                contentColor = Color.Black
-            ) {
+            NavigationBar {
                 bottomNavItems.forEach { item ->
-                    val isSelected = currentRoute == item.route
                     NavigationBarItem(
-                        icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = item.label,
-                                color = if (isSelected) Color(0xFF4CAF50) else Color.Gray
-                            )
-                        },
-                        selected = isSelected,
+                        icon = { Icon(item.icon, contentDescription = item.label) },
+                        label = { Text(item.label) },
+                        selected = currentRoute == item.route,
                         onClick = {
                             if (currentRoute != item.route) {
                                 memberNavController.navigate(item.route) {
@@ -105,12 +120,7 @@ fun MemberScreen(
                                     launchSingleTop = true
                                 }
                             }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = Color(0xFF4CAF50),
-                            unselectedIconColor = Color.Gray,
-                            indicatorColor = Color.White
-                        )
+                        }
                     )
                 }
             }
@@ -162,22 +172,4 @@ private data class BottomNavItem(
     val label: String,
     val icon: ImageVector,
     val route: String
-)
-
-private val bottomNavItems = listOf(
-    BottomNavItem(
-        label = "Daily Workout",
-        icon = Icons.Default.Person,
-        route = AppRoutes.MEMBER_WORKOUT
-    ),
-    BottomNavItem(
-        label = "Gym Events",
-        icon = Icons.Default.Person,
-        route = AppRoutes.MEMBER_EVENT
-    ),
-    BottomNavItem(
-        label = "Profile",
-        icon = Icons.Default.Person,
-        route = AppRoutes.MEMBER_PROFILE
-    )
 )

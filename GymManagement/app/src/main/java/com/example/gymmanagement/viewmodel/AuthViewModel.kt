@@ -45,12 +45,12 @@ class AuthViewModel(
         val role = sharedPreferences.getString("user_role", null)
         if (email != null && role != null) {
             viewModelScope.launch {
-                val user = userRepository.getUserByEmail(email)
+                    val user = userRepository.getUserByEmail(email)
                 if (user != null && user.role.lowercase() == role.lowercase()) {
-                    _currentUser.value = user
-                    _isLoggedIn.value = true
-                    Log.d("AuthViewModel", "Session restored for user: $email with role: $role")
-                } else {
+                        _currentUser.value = user
+                        _isLoggedIn.value = true
+                        Log.d("AuthViewModel", "Session restored for user: $email with role: $role")
+                    } else {
                     clearSession()
                 }
             }
@@ -254,12 +254,12 @@ class AuthViewModel(
     }
 
     private fun saveSession(user: UserEntity) {
-        sharedPreferences.edit().apply {
-            putString("user_email", user.email)
-            putString("user_role", user.role.lowercase())
-            apply()
-        }
-        Log.d("AuthViewModel", "Session saved for user: ${user.email} with role: ${user.role}")
+            sharedPreferences.edit().apply {
+                putString("user_email", user.email)
+                putString("user_role", user.role.lowercase())
+                apply()
+            }
+            Log.d("AuthViewModel", "Session saved for user: ${user.email} with role: ${user.role}")
     }
 
     private fun clearSession() {
