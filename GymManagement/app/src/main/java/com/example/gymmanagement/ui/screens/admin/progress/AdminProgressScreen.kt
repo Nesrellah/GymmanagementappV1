@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,71 +24,110 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.gymmanagement.data.repository.TraineeProgressRepositoryImpl
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import com.example.gymmanagement.data.repository.UserRepositoryImpl
+import com.example.gymmanagement.data.model.UserProfile
 
 private val DeepBlue = Color(0xFF0000CD)
 private val LightBlue = Color(0xFFE6E9FD)
+private val Green = Color(0xFF4CAF50)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminProgressScreen(
-    viewModel: AdminProgressViewModel
+    viewModel: AdminProgressViewModel,
+    userRepository: UserRepositoryImpl
 ) {
-    val progress by viewModel.allProgress.collectAsState(initial = emptyList())
-    
+    val progressList by viewModel.allProgress.collectAsState(initial = emptyList())
+    var allMembers by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
+    var progressByTraineeId by remember { mutableStateOf<Map<Int, Int>>(emptyMap()) }
+
+    // Collect all members/trainees
+    LaunchedEffect(Unit) {
+        userRepository.getAllUserProfiles().collect { profiles ->
+            allMembers = profiles
+        }
+    }
+    // Build a map of traineeId to progress percent
+    LaunchedEffect(progressList) {
+        val map = mutableMapOf<Int, Int>()
+        for (progress in progressList) {
+            val id = progress.traineeId.toIntOrNull() ?: continue
+            map[id] = progress.progressPercentage
+        }
+        progressByTraineeId = map
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Top Navigation Bar
-        Surface(
-            color = DeepBlue,
-            shadowElevation = 4.dp
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Progress",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White
-                )
-            }
-        }
-
-        Column(
+        // Top Bar
+        Box(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
+                .fillMaxWidth()
+                .background(DeepBlue)
+                .padding(vertical = 18.dp, horizontal = 16.dp)
         ) {
             Text(
-                text = "Trainee Progress",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(bottom = 4.dp)
+                text = "Gym Progress",
+                color = Color.White,
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Bold
             )
-            
-            Text(
-                text = "Track member progress and achievements",
-                style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(progress) { traineeProgress ->
-                    TraineeProgressItem(
-                        progress = traineeProgress,
-                        onUpdate = { viewModel.updateProgress(it) }
-                    )
-                }
+        }
+        Text(
+            text = "Daily Progress",
+            color = DeepBlue,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 12.dp)
+        )
+        LazyColumn(
+            modifier = Modifier.padding(horizontal = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            itemsIndexed(allMembers) { idx, member ->
+                val percent = progressByTraineeId[member.id] ?: 0
+                ProgressCard(idx + 1, member.name, percent, member.id)
             }
         }
+    }
+}
+
+@Composable
+fun ProgressCard(number: Int, name: String, percent: Int, id: Int) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color(0xFFE6E9FD)),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = "$number.",
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF0000CD),
+            fontSize = 16.sp,
+            modifier = Modifier.padding(start = 12.dp)
+        )
+        Text(
+            text = name,
+            fontSize = 16.sp,
+            color = Color.Black,
+            modifier = Modifier.padding(start = 8.dp).weight(1f)
+        )
+        Text(
+            text = "$percent%",
+            fontWeight = FontWeight.Bold,
+            color = Color(0xFF0000CD),
+            fontSize = 16.sp,
+            modifier = Modifier.padding(end = 16.dp)
+        )
     }
 }
 

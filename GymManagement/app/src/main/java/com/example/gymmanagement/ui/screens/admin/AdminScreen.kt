@@ -32,6 +32,7 @@ import com.example.gymmanagement.utils.ImagePicker
 private val PrimaryBlue = Color(0xFF0000FF)
 private val BackgroundGray = Color(0xFFF5F5F5)
 private val CardBlue = Color(0xFFE6E9FD)
+private val Green = Color(0xFF00FF00)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -107,13 +108,13 @@ fun AdminScreen(
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = item.label,
-                                tint = if (isSelected) PrimaryBlue else Color.Gray
+                                tint = if (isSelected) Green else Color.Gray
                             )
                         },
                         label = {
                             Text(
                                 text = item.label,
-                                color = if (isSelected) PrimaryBlue else Color.Gray
+                                color = if (isSelected) Green else Color.Gray
                             )
                         },
                         selected = isSelected,
@@ -126,8 +127,8 @@ fun AdminScreen(
                             }
                         },
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = PrimaryBlue,
-                            selectedTextColor = PrimaryBlue,
+                            selectedIconColor = Green,
+                            selectedTextColor = Green,
                             unselectedIconColor = Color.Gray,
                             unselectedTextColor = Color.Gray,
                             indicatorColor = CardBlue
@@ -156,11 +157,11 @@ fun AdminScreen(
             composable(AppRoutes.ADMIN_EVENT) {
                 AdminEventScreen(viewModel = adminEventViewModel)
             }
-            composable(AppRoutes.ADMIN_PROGRESS) {
-                AdminProgressScreen(viewModel = adminProgressViewModel)
-            }
             composable(AppRoutes.ADMIN_MEMBER) {
                 AdminMemberScreen(viewModel = adminMemberViewModel)
+            }
+            composable(AppRoutes.ADMIN_PROGRESS) {
+                AdminProgressScreen(viewModel = adminProgressViewModel, userRepository = userRepository)
             }
         }
     }
