@@ -24,9 +24,13 @@ import com.example.gymmanagement.data.model.Workout
 import com.example.gymmanagement.viewmodel.MemberWorkoutViewModel
 import com.example.gymmanagement.ui.theme.GymManagementAppTheme
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
+
+private val DeepBlue = Color(0xFF0000CD)
+private val Green = Color(0xFF4CAF50)
 
 @Composable
 fun MemberWorkoutScreen(
@@ -49,7 +53,7 @@ fun MemberWorkoutScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF0000CD))
+                .background(DeepBlue)
                 .padding(16.dp)
         ) {
             Text(
@@ -87,7 +91,7 @@ fun MemberWorkoutScreen(
                     Text(
                         text = "${(progress * 100).toInt()}%",
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color(0xFF0000CD)
+                        color = DeepBlue
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -97,7 +101,7 @@ fun MemberWorkoutScreen(
                         .fillMaxWidth()
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp)),
-                    color = Color(0xFF0000CD),
+                    color = DeepBlue,
                     trackColor = Color(0xFFE0E0E0)
                 )
             }
@@ -109,7 +113,7 @@ fun MemberWorkoutScreen(
             modifier = Modifier.padding(horizontal = 16.dp),
             fontSize = 18.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF0000CD)
+            color = DeepBlue
         )
 
         if (workouts.isEmpty()) {
@@ -167,63 +171,91 @@ fun WorkoutCard(
                 modifier = Modifier.matchParentSize()
             )
 
-            // Content overlay
+            // Top left: Title in white rounded box
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-                    .padding(16.dp)
+                    .align(Alignment.TopStart)
+                    .padding(12.dp)
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
+                Surface(
+                    color = Color.White.copy(alpha = 0.95f),
+                    shape = RoundedCornerShape(12.dp),
+                    shadowElevation = 2.dp,
                 ) {
-                    // Top Row with Title
                     Text(
                         text = workout.eventTitle,
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                     )
-                    Spacer(modifier = Modifier.weight(1f))
-                    // Bottom Row with Workout Details and Finish/Done button
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                }
+            }
+
+            // Top right: Finish/Done overlay button
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+            ) {
+                val buttonColor = if (workout.isCompleted) Green else DeepBlue
+                val buttonText = if (workout.isCompleted) "Done" else "Finish"
+                Surface(
+                    color = buttonColor,
+                    shape = RoundedCornerShape(8.dp),
+                    shadowElevation = 4.dp,
+                    modifier = Modifier
+                        .height(36.dp)
+                        .wrapContentWidth()
+                        .clickable(enabled = !workout.isCompleted) { onToggleCompletion() }
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 18.dp)
+                            .fillMaxHeight(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            WorkoutInfo("${workout.sets} sets")
-                            WorkoutInfo("${workout.repsOrSecs} reps")
-                            WorkoutInfo("${workout.restTime}s rest")
-                        }
-                        if (workout.isCompleted) {
-                            Button(
-                                onClick = {},
-                                enabled = false,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.height(36.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = "Done",
-                                    tint = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Done", color = Color.White)
-                            }
-                        } else {
-                            Button(
-                                onClick = onToggleCompletion,
-                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.height(36.dp)
-                            ) {
-                                Text("Finish", color = Color(0xFF0000CD))
-                            }
-                        }
+                        Text(
+                            buttonText,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+            }
+
+            // Bottom left: Info in a single white rounded box
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
+            ) {
+                Surface(
+                    color = Color.White.copy(alpha = 0.95f),
+                    shape = RoundedCornerShape(12.dp),
+                    shadowElevation = 2.dp,
+                    modifier = Modifier.fillMaxWidth(0.7f)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "Sets: ${workout.sets}",
+                            color = Color.Black,
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            text = "Reps/Secs: ${workout.repsOrSecs}",
+                            color = Color.Black,
+                            fontSize = 12.sp
+                        )
+                        Text(
+                            text = "Rest: ${workout.restTime}s",
+                            color = Color.Black,
+                            fontSize = 12.sp
+                        )
                     }
                 }
             }
@@ -232,18 +264,13 @@ fun WorkoutCard(
 }
 
 @Composable
-private fun WorkoutInfo(text: String) {
-    Surface(
-        color = Color.White.copy(alpha = 0.9f),
-        shape = RoundedCornerShape(4.dp)
-    ) {
-        Text(
-            text = text,
-            color = Color.Black,
-            fontSize = 14.sp,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-        )
-    }
+fun WorkoutInfo(text: String) {
+    Text(
+        text = text,
+        color = Color.White,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium
+    )
 }
 
 

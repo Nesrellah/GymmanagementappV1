@@ -5,37 +5,50 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gymmanagement.data.model.Workout
 import com.example.gymmanagement.data.repository.WorkoutRepository
+import com.example.gymmanagement.data.repository.UserRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MemberWorkoutViewModel(
     private val repository: WorkoutRepository,
+    private val userRepository: UserRepository,
     private val currentUserEmail: String
 ) : ViewModel() {
 
-    init {
-        Log.d("MemberWorkoutViewModel", "Initializing with currentUserEmail: $currentUserEmail")
-    }
+    private val _traineeId = MutableStateFlow<Int?>(null)
+    val traineeId: StateFlow<Int?> = _traineeId.asStateFlow()
 
-    private val _workouts = repository.getWorkoutsByTraineeId(currentUserEmail)
-        .onEach { workouts ->
-            Log.d("MemberWorkoutViewModel", "Received workouts: $workouts")
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = emptyList()
-        )
-    val workouts: StateFlow<List<Workout>> = _workouts
+    private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
+    val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
 
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress.asStateFlow()
 
     init {
+        // Load traineeId
         viewModelScope.launch {
-            _workouts.collect { workouts ->
-                Log.d("MemberWorkoutViewModel", "Updating progress for workouts: $workouts")
-                updateProgress(workouts)
+            try {
+                val userProfile = userRepository.getUserProfileByEmail(currentUserEmail)
+                _traineeId.value = userProfile?.id
+                Log.d("MemberWorkoutViewModel", "Loaded traineeId: ${_traineeId.value}")
+            } catch (e: Exception) {
+                Log.e("MemberWorkoutViewModel", "Error loading traineeId", e)
+            }
+        }
+
+        // Reactively load workouts when traineeId is available
+        viewModelScope.launch {
+            traineeId.filterNotNull().collect { id ->
+                repository.getWorkoutsByTraineeId(id)
+                    .onEach { workouts ->
+                        Log.d("MemberWorkoutViewModel", "Received workouts: $workouts")
+                        _workouts.value = workouts
+                        updateProgress(workouts)
+                    }
+                    .catch { e ->
+                        Log.e("MemberWorkoutViewModel", "Error fetching workouts", e)
+                    }
+                    .collect()
             }
         }
     }
@@ -45,9 +58,9 @@ class MemberWorkoutViewModel(
             try {
                 val updatedWorkout = workout.copy(isCompleted = !workout.isCompleted)
                 repository.updateWorkout(updatedWorkout)
-                // No need to reload workouts as Flow will update automatically
+                Log.d("MemberWorkoutViewModel", "Workout completion toggled: ${updatedWorkout.isCompleted}")
             } catch (e: Exception) {
-                // Handle error
+                Log.e("MemberWorkoutViewModel", "Error toggling workout completion", e)
             }
         }
     }
@@ -59,5 +72,6 @@ class MemberWorkoutViewModel(
         }
         val completedCount = workouts.count { it.isCompleted }
         _progress.value = completedCount.toFloat() / workouts.size
+        Log.d("MemberWorkoutViewModel", "Progress updated: ${_progress.value}")
     }
 } 

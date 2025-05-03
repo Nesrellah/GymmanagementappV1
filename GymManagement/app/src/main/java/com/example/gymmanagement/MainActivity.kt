@@ -35,21 +35,21 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        lifecycleScope.launch {
-            val db = AppDatabase.getDatabase(applicationContext)
-            val adminUser = UserEntity(
-                id = 0,
-                name = "Admin",
-                email = "admin@gmail.com",
-                password = "admin123",
-                age = 30,
-                height = 180f,
-                weight = 75f,
-                role = "admin",
-                joinDate = "2024-06-01"
-            )
-            db.userDao().insertUser(adminUser)
-        }
+//
+//        lifecycleScope.launch {
+//            val db = AppDatabase.getDatabase(applicationContext)
+//            val adminUser = UserEntity(
+//                id = 0,
+//                name = "Admin",
+//                email = "admin@gmail.com",
+//                password = "admin123",
+//                age = 30,
+//                height = 180f,
+//                weight = 75f,
+//                role = "admin",
+//                joinDate = "2024-06-01"
+//            )
+//            db.userDao().insertUser(adminUser)
+//        }
     }
 }

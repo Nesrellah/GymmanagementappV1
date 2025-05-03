@@ -61,6 +61,7 @@ fun MemberScreen(
     val memberWorkoutViewModel = remember(currentUser?.email) { 
         MemberWorkoutViewModel(
             repository = workoutRepository,
+            userRepository = userRepository,
             currentUserEmail = currentUser?.email ?: ""
         )
     }

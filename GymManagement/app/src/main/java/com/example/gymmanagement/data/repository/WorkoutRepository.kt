@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 interface WorkoutRepository {
     fun getAllWorkouts(): Flow<List<Workout>>
     suspend fun getWorkoutById(id: Int): Workout?
-    fun getWorkoutsByTraineeId(traineeId: String): Flow<List<Workout>>
+    fun getWorkoutsByTraineeId(traineeId: Int): Flow<List<Workout>>
     suspend fun insertWorkout(workout: Workout)
     suspend fun updateWorkout(workout: Workout)
     suspend fun deleteWorkout(workout: Workout)
@@ -27,7 +27,7 @@ class WorkoutRepositoryImpl(
         return workoutDao.getWorkoutById(id)
     }
     
-    override fun getWorkoutsByTraineeId(traineeId: String): Flow<List<Workout>> {
+    override fun getWorkoutsByTraineeId(traineeId: Int): Flow<List<Workout>> {
         Log.d("WorkoutRepository", "Getting workouts for traineeId: $traineeId")
         return workoutDao.getWorkoutsByTraineeId(traineeId)
     }
