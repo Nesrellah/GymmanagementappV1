@@ -25,6 +25,7 @@ import com.example.gymmanagement.ui.screens.member.workout.MemberWorkoutScreen
 import com.example.gymmanagement.ui.screens.member.profile.MemberProfileScreen
 import com.example.gymmanagement.ui.screens.member.event.MemberEventScreen
 import com.example.gymmanagement.viewmodel.*
+import androidx.compose.ui.graphics.toArgb
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,6 +36,12 @@ fun MemberScreen(
     val context = LocalContext.current
     val memberNavController = rememberNavController()
     val currentRoute = currentRoute(memberNavController)
+
+    // Set status bar color to white for visibility
+    androidx.compose.runtime.SideEffect {
+        val window = (context as? android.app.Activity)?.window
+        window?.statusBarColor = Color.White.toArgb()
+    }
 
     // Initialize database and repositories
     val db = AppDatabase.getDatabase(context)
@@ -105,14 +112,31 @@ fun MemberScreen(
         )
     )
 
+    val Green = Color(0xFF4CAF50)
+    val PrimaryBlue = Color(0xFF0000CD)
+
     Scaffold(
         bottomBar = {
-            NavigationBar {
+            NavigationBar(
+                containerColor = Color.White
+            ) {
                 bottomNavItems.forEach { item ->
+                    val isSelected = currentRoute == item.route
                     NavigationBarItem(
-                        icon = { Icon(item.icon, contentDescription = item.label) },
-                        label = { Text(item.label) },
-                        selected = currentRoute == item.route,
+                        icon = {
+                            Icon(
+                                item.icon,
+                                contentDescription = item.label,
+                                tint = if (isSelected) Green else Color.Gray
+                            )
+                        },
+                        label = {
+                            Text(
+                                item.label,
+                                color = if (isSelected) Green else Color.Gray
+                            )
+                        },
+                        selected = isSelected,
                         onClick = {
                             if (currentRoute != item.route) {
                                 memberNavController.navigate(item.route) {
@@ -120,7 +144,13 @@ fun MemberScreen(
                                     launchSingleTop = true
                                 }
                             }
-                        }
+                        },
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = Green,
+                            selectedTextColor = Green,
+                            unselectedIconColor = Color.Gray,
+                            unselectedTextColor = Color.Gray
+                        )
                     )
                 }
             }

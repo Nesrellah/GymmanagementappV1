@@ -26,6 +26,10 @@ import com.example.gymmanagement.R
 import com.example.gymmanagement.data.model.EventEntity
 import com.example.gymmanagement.viewmodel.MemberEventViewModel
 import androidx.compose.foundation.Image
+import coil.compose.rememberAsyncImagePainter
+import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
+import androidx.compose.material3.Surface
 
 @Composable
 fun MemberEventScreen(
@@ -118,97 +122,138 @@ fun EventCard(event: EventEntity) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(120.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            .height(170.dp)
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // Background Image
-            Image(
-                painter = painterResource(id = R.drawable.gym_logo),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
+            // Background Image or fallback color
+            if (!event.imageUri.isNullOrEmpty()) {
+                AsyncImage(
+                    model = event.imageUri,
+                    contentDescription = null,
+                    modifier = Modifier.matchParentSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.White)
+                )
+            }
 
-            // Overlay
+            // Bottom: Info in a single white rounded box (like admin)
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f))
-            )
-
-            // Content
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.SpaceBetween
+                    .align(Alignment.BottomStart)
+                    .padding(12.dp)
             ) {
-                // Event Title
-                Text(
-                    text = event.title,
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                // Event Details
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    modifier = Modifier
+                        .widthIn(max = 320.dp)
                 ) {
-                    // Date
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    // Title row
+                    Surface(
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Date",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
                         Text(
-                            text = event.date,
-                            color = Color.White,
-                            fontSize = 14.sp
+                            text = event.title,
+                            color = Color.Black,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                         )
                     }
-
-                    // Time
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Date row
+                    Surface(
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Person,
-                            contentDescription = "Time",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = event.time,
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = event.date,
+                                color = Color.Black,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
                     }
-
-                    // Location
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Time row
+                    Surface(
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Location",
-                            tint = Color.White,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = event.location,
-                            color = Color.White,
-                            fontSize = 14.sp
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.AccessTime,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = event.time,
+                                color = Color.Black,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    // Location row
+                    Surface(
+                        color = Color.White.copy(alpha = 0.95f),
+                        shape = RoundedCornerShape(12.dp),
+                        shadowElevation = 2.dp,
+                        modifier = Modifier.wrapContentWidth()
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.LocationOn,
+                                contentDescription = null,
+                                tint = Color.Black,
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = event.location,
+                                color = Color.Black,
+                                fontSize = 12.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.offset(y = (-5).dp)
+                            )
+                        }
                     }
                 }
             }

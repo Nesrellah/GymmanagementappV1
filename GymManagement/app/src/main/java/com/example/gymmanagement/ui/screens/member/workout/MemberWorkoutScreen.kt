@@ -152,9 +152,9 @@ fun WorkoutCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp),
-        shape = RoundedCornerShape(8.dp),
-        onClick = onToggleCompletion
+            .height(170.dp)
+            .padding(vertical = 4.dp),
+        shape = RoundedCornerShape(12.dp)
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
@@ -171,42 +171,59 @@ fun WorkoutCard(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .background(Color.Black.copy(alpha = 0.3f))
                     .padding(16.dp)
             ) {
-                Column {
-                    // Top Row with Title and Completion Status
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // Top Row with Title
+                    Text(
+                        text = workout.eventTitle,
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    // Bottom Row with Workout Details and Finish/Done button
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = workout.eventTitle,
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        if (workout.isCompleted) {
-                            Icon(
-                                imageVector = Icons.Default.Check,
-                                contentDescription = "Completed",
-                                tint = Color.Green,
-                                modifier = Modifier.size(24.dp)
-                            )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            WorkoutInfo("${workout.sets} sets")
+                            WorkoutInfo("${workout.repsOrSecs} reps")
+                            WorkoutInfo("${workout.restTime}s rest")
                         }
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    // Bottom Row with Workout Details
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        WorkoutInfo("${workout.sets} sets")
-                        WorkoutInfo("${workout.repsOrSecs} reps")
-                        WorkoutInfo("${workout.restTime}s rest")
+                        if (workout.isCompleted) {
+                            Button(
+                                onClick = {},
+                                enabled = false,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.height(36.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Done",
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Done", color = Color.White)
+                            }
+                        } else {
+                            Button(
+                                onClick = onToggleCompletion,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.height(36.dp)
+                            ) {
+                                Text("Finish", color = Color(0xFF0000CD))
+                            }
+                        }
                     }
                 }
             }
