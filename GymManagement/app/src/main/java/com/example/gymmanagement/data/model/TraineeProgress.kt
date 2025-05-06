@@ -2,6 +2,7 @@ package com.example.gymmanagement.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.Date
 
 @Entity(tableName = "trainee_progress")
 data class TraineeProgress(

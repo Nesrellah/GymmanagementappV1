@@ -35,7 +35,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-//
+
 //        lifecycleScope.launch {
 //            val db = AppDatabase.getDatabase(applicationContext)
 //            val adminUser = UserEntity(

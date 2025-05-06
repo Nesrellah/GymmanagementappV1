@@ -37,8 +37,7 @@ private val Green = Color(0xFF4CAF50)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminWorkoutScreen(
-    viewModel: AdminWorkoutViewModel,
-    onLogoutClick: () -> Unit
+    viewModel: AdminWorkoutViewModel
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
     var selectedWorkout by remember { mutableStateOf<Workout?>(null) }
@@ -67,17 +66,6 @@ fun AdminWorkoutScreen(
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
-                IconButton(
-                    onClick = onLogoutClick,
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.ExitToApp,
-                        contentDescription = "Logout"
-                    )
-                }
             }
         }
 

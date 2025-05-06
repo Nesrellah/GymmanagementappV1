@@ -4,14 +4,17 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gymmanagement.data.model.Workout
+import com.example.gymmanagement.data.model.TraineeProgress
 import com.example.gymmanagement.data.repository.WorkoutRepository
 import com.example.gymmanagement.data.repository.UserRepository
+import com.example.gymmanagement.data.repository.TraineeProgressRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MemberWorkoutViewModel(
     private val repository: WorkoutRepository,
     private val userRepository: UserRepository,
+    private val traineeProgressRepository: TraineeProgressRepository,
     private val currentUserEmail: String
 ) : ViewModel() {
 
@@ -36,9 +39,10 @@ class MemberWorkoutViewModel(
             }
         }
 
-        // Reactively load workouts when traineeId is available
+        // Reactively load workouts and progress when traineeId is available
         viewModelScope.launch {
             traineeId.filterNotNull().collect { id ->
+                // Load workouts
                 repository.getWorkoutsByTraineeId(id)
                     .onEach { workouts ->
                         Log.d("MemberWorkoutViewModel", "Received workouts: $workouts")
@@ -49,6 +53,14 @@ class MemberWorkoutViewModel(
                         Log.e("MemberWorkoutViewModel", "Error fetching workouts", e)
                     }
                     .collect()
+
+                // Load saved progress
+                traineeProgressRepository.getProgressByTraineeId(id.toString())
+                    .collect { progressList ->
+                        progressList.firstOrNull()?.let { progress ->
+                            _progress.value = progress.progressPercentage / 100f
+                        }
+                    }
             }
         }
     }
@@ -59,6 +71,27 @@ class MemberWorkoutViewModel(
                 val updatedWorkout = workout.copy(isCompleted = !workout.isCompleted)
                 repository.updateWorkout(updatedWorkout)
                 Log.d("MemberWorkoutViewModel", "Workout completion toggled: ${updatedWorkout.isCompleted}")
+                
+                // Update progress in database
+                _traineeId.value?.let { id ->
+                    // Get the current list of workouts excluding the one being toggled
+                    val otherWorkouts = _workouts.value.filter { it.id != workout.id }
+                    // Count completed workouts from other workouts
+                    val otherCompletedCount = otherWorkouts.count { it.isCompleted }
+                    // Add 1 if the current workout is being marked as completed
+                    val completedCount = otherCompletedCount + if (updatedWorkout.isCompleted) 1 else 0
+                    val totalCount = _workouts.value.size
+                    
+                    val traineeProgress = TraineeProgress(
+                        traineeId = id.toString(),
+                        completedWorkouts = completedCount,
+                        totalWorkouts = totalCount,
+                        lastUpdated = System.currentTimeMillis()
+                    )
+                    
+                    traineeProgressRepository.insertProgress(traineeProgress)
+                    Log.d("MemberWorkoutViewModel", "Progress updated: ${traineeProgress.progressPercentage}%")
+                }
             } catch (e: Exception) {
                 Log.e("MemberWorkoutViewModel", "Error toggling workout completion", e)
             }

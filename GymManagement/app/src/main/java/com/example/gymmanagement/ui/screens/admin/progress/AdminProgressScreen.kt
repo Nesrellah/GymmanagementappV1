@@ -29,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import com.example.gymmanagement.data.repository.UserRepositoryImpl
 import com.example.gymmanagement.data.model.UserProfile
+import kotlinx.coroutines.delay
 
 private val DeepBlue = Color(0xFF0000CD)
 private val LightBlue = Color(0xFFE6E9FD)
@@ -40,7 +41,7 @@ fun AdminProgressScreen(
     viewModel: AdminProgressViewModel,
     userRepository: UserRepositoryImpl
 ) {
-    val progressList by viewModel.allProgress.collectAsState(initial = emptyList())
+    val progressList by viewModel.allProgress.collectAsState()
     var allMembers by remember { mutableStateOf<List<UserProfile>>(emptyList()) }
     var progressByTraineeId by remember { mutableStateOf<Map<Int, Int>>(emptyMap()) }
 
@@ -50,7 +51,8 @@ fun AdminProgressScreen(
             allMembers = profiles
         }
     }
-    // Build a map of traineeId to progress percent
+
+    // Build a map of traineeId to progress percent from TraineeProgress
     LaunchedEffect(progressList) {
         val map = mutableMapOf<Int, Int>()
         for (progress in progressList) {
@@ -58,6 +60,14 @@ fun AdminProgressScreen(
             map[id] = progress.progressPercentage
         }
         progressByTraineeId = map
+    }
+
+    // Refresh progress data periodically
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(5000) // Refresh every 5 seconds
+            viewModel.loadProgress()
+        }
     }
 
     Column(

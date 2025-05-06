@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,12 +21,15 @@ import com.example.gymmanagement.data.database.AppDatabase
 import com.example.gymmanagement.data.repository.WorkoutRepositoryImpl
 import com.example.gymmanagement.data.repository.EventRepository
 import com.example.gymmanagement.data.repository.UserRepositoryImpl
+import com.example.gymmanagement.data.repository.TraineeProgressRepositoryImpl
 import com.example.gymmanagement.navigation.AppRoutes
+import com.example.gymmanagement.R
 import com.example.gymmanagement.ui.screens.member.workout.MemberWorkoutScreen
 import com.example.gymmanagement.ui.screens.member.profile.MemberProfileScreen
 import com.example.gymmanagement.ui.screens.member.event.MemberEventScreen
 import com.example.gymmanagement.viewmodel.*
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,19 +53,22 @@ fun MemberScreen(
     val eventDao = remember { db.eventDao() }
     val userDao = remember { db.userDao() }
     val userProfileDao = remember { db.userProfileDao() }
+    val traineeProgressDao = remember { db.traineeProgressDao() }
 
     val workoutRepository = remember { WorkoutRepositoryImpl(workoutDao) }
     val eventRepository = remember { EventRepository(eventDao) }
     val userRepository = remember { UserRepositoryImpl(userDao, userProfileDao, context) }
+    val traineeProgressRepository = remember { TraineeProgressRepositoryImpl(traineeProgressDao) }
 
     // Initialize ViewModels
     val currentUser by viewModel.currentUser.collectAsState()
-    
+
     // Create ViewModels
-    val memberWorkoutViewModel = remember(currentUser?.email) { 
+    val memberWorkoutViewModel = remember(currentUser?.email) {
         MemberWorkoutViewModel(
             repository = workoutRepository,
             userRepository = userRepository,
+            traineeProgressRepository = traineeProgressRepository,
             currentUserEmail = currentUser?.email ?: ""
         )
     }
@@ -98,17 +105,17 @@ fun MemberScreen(
     val bottomNavItems = listOf(
         BottomNavItem(
             label = "Workout",
-            icon = Icons.Default.FitnessCenter,
+            icon = painterResource(id = R.drawable.ic_workout_icon),
             route = AppRoutes.MEMBER_WORKOUT
         ),
         BottomNavItem(
             label = "Events",
-            icon = Icons.Default.Event,
+            icon = painterResource(id = R.drawable.ic_event_icon),
             route = AppRoutes.MEMBER_EVENT
         ),
         BottomNavItem(
             label = "Profile",
-            icon = Icons.Default.Person,
+            icon = painterResource(id = R.drawable.ic_profile_icon),
             route = AppRoutes.MEMBER_PROFILE
         )
     )
@@ -119,22 +126,28 @@ fun MemberScreen(
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White
+                containerColor = Color(0xFFF1F1F1)
             ) {
                 bottomNavItems.forEach { item ->
                     val isSelected = currentRoute == item.route
                     NavigationBarItem(
                         icon = {
-                            Icon(
-                                item.icon,
-                                contentDescription = item.label,
-                                tint = if (isSelected) Green else Color.Gray
-                            )
+                            Box(
+                                modifier = Modifier.size(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    painter = item.icon as androidx.compose.ui.graphics.painter.Painter,
+                                    contentDescription = item.label,
+                                    tint = if (isSelected) Green else Color.Black,
+                                    modifier = Modifier.size(28.dp)
+                                )
+                            }
                         },
                         label = {
                             Text(
                                 item.label,
-                                color = if (isSelected) Green else Color.Gray
+                                color = if (isSelected) Green else Color.Black
                             )
                         },
                         selected = isSelected,
@@ -149,8 +162,8 @@ fun MemberScreen(
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Green,
                             selectedTextColor = Green,
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray
+                            unselectedIconColor = Color.Black,
+                            unselectedTextColor = Color.Black
                         )
                     )
                 }
@@ -201,6 +214,6 @@ private fun currentRoute(navController: NavController): String? {
 
 private data class BottomNavItem(
     val label: String,
-    val icon: ImageVector,
+    val icon: Any,  // Changed from ImageVector to Any to support both ImageVector and Painter
     val route: String
 )

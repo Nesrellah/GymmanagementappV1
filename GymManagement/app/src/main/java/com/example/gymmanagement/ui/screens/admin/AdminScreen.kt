@@ -3,13 +3,15 @@ package com.example.gymmanagement.ui.screens.admin
 import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -21,7 +23,6 @@ import com.example.gymmanagement.viewmodel.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.unit.dp
-import com.example.gymmanagement.data.model.Workout
 import com.example.gymmanagement.ui.screens.admin.workout.AdminWorkoutScreen
 import com.example.gymmanagement.ui.screens.admin.event.AdminEventScreen
 import com.example.gymmanagement.ui.screens.admin.member.AdminMemberScreen
@@ -31,11 +32,12 @@ import com.example.gymmanagement.data.repository.EventRepository
 import com.example.gymmanagement.data.repository.UserRepositoryImpl
 import com.example.gymmanagement.data.repository.TraineeProgressRepositoryImpl
 import com.example.gymmanagement.utils.ImagePicker
+import com.example.gymmanagement.R
 
 private val PrimaryBlue = Color(0xFF0000FF)
 private val BackgroundGray = Color(0xFFF5F5F5)
 private val CardBlue = Color(0xFFE6E9FD)
-private val Green = Color(0xFF00FF00)
+private val Green = Color(0xFF4CAF50)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -54,7 +56,7 @@ fun AdminScreen(
     val userDao = remember { db.userDao() }
     val userProfileDao = remember { db.userProfileDao() }
     val traineeProgressDao = remember { db.traineeProgressDao() }
-    
+
     val workoutRepository = remember { WorkoutRepositoryImpl(workoutDao) }
     val eventRepository = remember { EventRepository(eventDao) }
     val userRepository = remember { UserRepositoryImpl(userDao, userProfileDao, context) }
@@ -62,7 +64,7 @@ fun AdminScreen(
     val imagePicker = remember { ImagePicker(context) }
 
     // Initialize ViewModels
-    val adminWorkoutViewModel = remember { 
+    val adminWorkoutViewModel = remember {
         AdminWorkoutViewModel(workoutRepository, imagePicker)
     }
     val adminEventViewModel = remember {
@@ -98,26 +100,63 @@ fun AdminScreen(
         }
     }
 
+    // Bottom navigation items
+    val bottomNavItems = listOf(
+        BottomNavItem(
+            label = "Workouts",
+            icon = painterResource(id = R.drawable.ic_workout_icon),
+            route = AppRoutes.ADMIN_WORKOUT
+        ),
+        BottomNavItem(
+            label = "Events",
+            icon = painterResource(id = R.drawable.ic_event_icon),
+            route = AppRoutes.ADMIN_EVENT
+        ),
+        BottomNavItem(
+            label = "Progress",
+            icon = painterResource(id = R.drawable.ic_progress_icon),
+            route = AppRoutes.ADMIN_PROGRESS
+        ),
+        BottomNavItem(
+            label = "Members",
+            icon = painterResource(id = R.drawable.ic_member_icon),
+            route = AppRoutes.ADMIN_MEMBER
+        ),
+    )
+
     Scaffold(
         bottomBar = {
             NavigationBar(
-                containerColor = Color.White,
-                contentColor = PrimaryBlue
+                containerColor = Color(0xFFF1F1F1)
             ) {
                 bottomNavItems.forEach { item ->
                     val isSelected = currentRoute == item.route
                     NavigationBarItem(
                         icon = {
-                            Icon(
-                                imageVector = item.icon,
-                                contentDescription = item.label,
-                                tint = if (isSelected) Green else Color.Gray
-                            )
+                            Box(
+                                modifier = Modifier.size(32.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                when (val icon = item.icon) {
+                                    is Painter -> Icon(
+                                        painter = icon,
+                                        contentDescription = item.label,
+                                        tint = if (isSelected) Green else Color.Black,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                    is ImageVector -> Icon(
+                                        imageVector = icon,
+                                        contentDescription = item.label,
+                                        tint = if (isSelected) Green else Color.Black,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                            }
                         },
                         label = {
                             Text(
                                 text = item.label,
-                                color = if (isSelected) Green else Color.Gray
+                                color = if (isSelected) Green else Color.Black
                             )
                         },
                         selected = isSelected,
@@ -132,9 +171,9 @@ fun AdminScreen(
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor = Green,
                             selectedTextColor = Green,
-                            unselectedIconColor = Color.Gray,
-                            unselectedTextColor = Color.Gray,
-                            indicatorColor = CardBlue
+                            unselectedIconColor = Color.Black,
+                            unselectedTextColor = Color.Black,
+                            indicatorColor = Color.Transparent
                         )
                     )
                 }
@@ -147,15 +186,7 @@ fun AdminScreen(
             modifier = Modifier.padding(paddingValues)
         ) {
             composable(AppRoutes.ADMIN_WORKOUT) {
-                AdminWorkoutScreen(
-                    viewModel = adminWorkoutViewModel,
-                    onLogoutClick = {
-                        viewModel.logout()
-                        navController.navigate(AppRoutes.LOGIN) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                    }
-                )
+                AdminWorkoutScreen(viewModel = adminWorkoutViewModel)
             }
             composable(AppRoutes.ADMIN_EVENT) {
                 AdminEventScreen(viewModel = adminEventViewModel)
@@ -169,7 +200,7 @@ fun AdminScreen(
         }
     }
 
-    // Handle back press (logout functionality)
+    // Handle back press (navigate to login)
     BackHandler {
         viewModel.logout()
         navController.navigate(AppRoutes.LOGIN) {
@@ -186,29 +217,6 @@ private fun currentRoute(navController: NavController): String? {
 
 private data class BottomNavItem(
     val label: String,
-    val icon: ImageVector,
+    val icon: Any,
     val route: String
-)
-
-private val bottomNavItems = listOf(
-    BottomNavItem(
-        label = "Workouts",
-        icon = Icons.Default.Person,
-        route = AppRoutes.ADMIN_WORKOUT
-    ),
-    BottomNavItem(
-        label = "Events",
-        icon = Icons.Default.Person,
-        route = AppRoutes.ADMIN_EVENT
-    ),
-    BottomNavItem(
-        label = "Members",
-        icon = Icons.Default.Person,
-        route = AppRoutes.ADMIN_MEMBER
-    ),
-    BottomNavItem(
-        label = "Progress",
-        icon = Icons.Default.Person,
-        route = AppRoutes.ADMIN_PROGRESS
-    )
 )

@@ -53,14 +53,14 @@ fun MemberWorkoutScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(DeepBlue)
-                .padding(16.dp)
+                .background(Color(0xFF1A18C6))
+                .padding(vertical = 24.dp, horizontal = 16.dp)
         ) {
             Text(
                 text = "Daily workout",
                 color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Medium
+                fontSize = 28.sp,
+                modifier = Modifier.align(Alignment.CenterStart)
             )
         }
 
