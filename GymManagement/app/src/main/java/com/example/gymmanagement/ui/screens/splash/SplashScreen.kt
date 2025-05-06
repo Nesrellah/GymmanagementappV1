@@ -31,6 +31,18 @@ import com.example.gymmanagement.R
 import com.example.gymmanagement.navigation.AppRoutes
 import com.example.gymmanagement.ui.theme.Blue
 import com.example.gymmanagement.viewmodel.AuthViewModel
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
+import android.app.Activity
+import android.os.Build
+import android.view.View
+import android.view.WindowInsetsController
 
 @Composable
 fun WaveBackground(content: @Composable () -> Unit) {
@@ -150,17 +162,35 @@ fun ContactUsSection() {
 }
 
 @Composable
+fun SetStatusBarWhite() {
+    val view = LocalView.current
+    val context = LocalContext.current
+    SideEffect {
+        val window = (context as? Activity)?.window
+        window?.statusBarColor = android.graphics.Color.WHITE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            window?.insetsController?.setSystemBarsAppearance(
+                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS,
+                WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS
+            )
+        } else {
+            @Suppress("DEPRECATION")
+            window?.decorView?.systemUiVisibility = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
+        }
+    }
+}
+
+@Composable
 fun SplashScreen(
     navController: NavController,
     viewModel: AuthViewModel
 ) {
+    SetStatusBarWhite()
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
 
-    // Check login state and navigate accordingly
     LaunchedEffect(isLoggedIn, currentUser) {
         if (isLoggedIn && currentUser != null) {
-            // Only auto-navigate for non-admin users
             if (currentUser!!.role.lowercase() != "admin") {
                 val route = AppRoutes.MEMBER_WORKOUT
                 navController.navigate(route) {
@@ -168,7 +198,6 @@ fun SplashScreen(
                     launchSingleTop = true
                 }
             } else {
-                // For admin users, always go to login screen
                 navController.navigate(AppRoutes.LOGIN) {
                     popUpTo(0) { inclusive = true }
                     launchSingleTop = true
@@ -177,94 +206,159 @@ fun SplashScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFFF8F6FA)),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HeaderWithLogo()
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            ContactUsSection()
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Gym Equipment Image
-            Image(
-                painter = painterResource(id = R.drawable.gym_logo),
-                contentDescription = "Gym Equipment",
+            // Large Blue Header
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .height(120.dp),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Buttons at the bottom
+                    .height(320.dp)
+                    .background(
+                        color = Blue,
+                        shape = RoundedCornerShape(bottomStart = 40.dp, bottomEnd = 40.dp)
+                    ),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 32.dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.gym_logo),
+                        contentDescription = "Gym Logo",
+                        modifier = Modifier
+                            .size(120.dp)
+                            .clip(RoundedCornerShape(60))
+                            .border(4.dp, Color.White, RoundedCornerShape(60)),
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Text(
+                        text = "FITNESS GYM",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 32.sp
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Your journey to a healthier life starts here",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.9f),
+                        fontSize = 18.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 24.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+            // Contact Us Section (larger)
             Column(
                 modifier = Modifier
-                    .padding(horizontal = 24.dp)
                     .fillMaxWidth()
+                    .padding(horizontal = 32.dp),
+                horizontalAlignment = Alignment.Start
             ) {
-                // Login Button
-                Button(
-                    onClick = {
-                        navController.navigate(AppRoutes.LOGIN) {
-                            popUpTo(0) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
+                Text(
+                    text = "Contact Us",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(bottom = 10.dp)
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Phone, contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("+251 90 102 0304", color = Color.Black, fontSize = 16.sp)
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.Email, contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("info@fitnessgym.com", color = Color.Black, fontSize = 16.sp)
+                }
+                Spacer(modifier = Modifier.height(6.dp))
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Filled.LocationOn, contentDescription = null, tint = Color.Black, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text("5 kilo, Addis Ababa, Ethiopia", color = Color.Black, fontSize = 16.sp)
+                }
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+            // Large Gym Equipment Image
+            Box(
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(Color.White)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.gym_logo), // TODO: Replace with actual gym equipment image if available
+                    contentDescription = "Gym Equipment",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Blue,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(4.dp),
-                    elevation = ButtonDefaults.buttonElevation(
-                        defaultElevation = 0.dp
-                    )
-                ) {
-                    Text(
-                        "Login",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Register Button - White background with blue border
-                OutlinedButton(
-                    onClick = {
-                        navController.navigate(AppRoutes.REGISTER) {
-                            popUpTo(0) { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .background(Color.White, RoundedCornerShape(4.dp)),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = Blue,
-                        containerColor = Color.White
-                    ),
-                    border = BorderStroke(1.dp, Blue),
-                    shape = RoundedCornerShape(4.dp)
-                ) {
-                    Text(
-                        "Register",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
+                        .height(220.dp),
+                    contentScale = ContentScale.Crop
+                )
+            }
+        }
+        // Buttons at the bottom
+        Column(
+            modifier = Modifier
+                .padding(horizontal = 32.dp, vertical = 24.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Button(
+                onClick = {
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Blue,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+            ) {
+                Text("Login", fontSize = 22.sp, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            OutlinedButton(
+                onClick = {
+                    navController.navigate(AppRoutes.REGISTER) {
+                        popUpTo(0) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = Blue,
+                    containerColor = Color.White
+                ),
+                border = BorderStroke(2.dp, Blue),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Register", fontSize = 22.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

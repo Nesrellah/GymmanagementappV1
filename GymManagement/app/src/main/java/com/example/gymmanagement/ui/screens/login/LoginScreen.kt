@@ -12,6 +12,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -46,6 +49,7 @@ fun LoginScreen(
     val isLoggedIn by viewModel.isLoggedIn.collectAsState()
     val currentUser by viewModel.currentUser.collectAsState()
     val context = LocalContext.current
+    var passwordVisible by remember { mutableStateOf(false) }
 
     // Observe login state
     LaunchedEffect(isLoggedIn, currentUser) {
@@ -67,7 +71,7 @@ fun LoginScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(220.dp)
+                .height(260.dp)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.gym_logo),
@@ -75,7 +79,7 @@ fun LoginScreen(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(bottomStart = 12.dp, bottomEnd = 12.dp))
+                    .clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp))
             )
 
             IconButton(
@@ -84,12 +88,13 @@ fun LoginScreen(
                     .padding(16.dp)
                     .align(Alignment.TopStart)
                     .background(Color.Black.copy(alpha = 0.4f), shape = RoundedCornerShape(50))
-                    .size(36.dp)
+                    .size(40.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.ArrowBack,
                     contentDescription = "Back",
-                    tint = Color.White
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
@@ -97,16 +102,16 @@ fun LoginScreen(
         Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)) {
             Text(
                 text = "Welcome Back",
-                fontSize = 24.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color(0xFF00006D)
             )
 
             Text(
                 text = "Login to your account",
-                fontSize = 16.sp,
+                fontSize = 18.sp,
                 color = Color.Gray,
-                modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
+                modifier = Modifier.padding(top = 4.dp, bottom = 20.dp)
             )
 
             // Email Input
@@ -116,11 +121,11 @@ fun LoginScreen(
                     email = it
                     showError = false
                 },
-                label = { Text("Email") },
-                placeholder = { Text("Enter your Email") },
+                label = { Text("Email", fontSize = 16.sp) },
+                placeholder = { Text("Enter your Email", fontSize = 16.sp) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = if (showError && viewModel.validateEmail(email) != null) 4.dp else 12.dp),
+                    .padding(bottom = if (showError && viewModel.validateEmail(email) != null) 4.dp else 16.dp),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Email),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -134,7 +139,8 @@ fun LoginScreen(
                 Text(
                     text = viewModel.validateEmail(email) ?: "",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    fontSize = 14.sp
                 )
             }
 
@@ -145,14 +151,21 @@ fun LoginScreen(
                     password = it
                     showError = false
                 },
-                label = { Text("Password") },
-                placeholder = { Text("Enter your Password") },
+                label = { Text("Password", fontSize = 16.sp) },
+                placeholder = { Text("Create Password", fontSize = 16.sp) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = if (showError && viewModel.validatePassword(password) != null) 4.dp else 12.dp),
+                    .padding(bottom = if (showError && viewModel.validatePassword(password) != null) 4.dp else 16.dp),
                 singleLine = true,
-                visualTransformation = PasswordVisualTransformation(),
+                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    val image = if (passwordVisible) Icons.Filled.VisibilityOff else Icons.Filled.Visibility
+                    val description = if (passwordVisible) "Hide password" else "Show password"
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                        Icon(imageVector = image, contentDescription = description)
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color(0xFF0000CD),
                     unfocusedBorderColor = Color.Gray.copy(alpha = 0.5f)
@@ -164,11 +177,12 @@ fun LoginScreen(
                 Text(
                     text = viewModel.validatePassword(password) ?: "",
                     color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(bottom = 12.dp)
+                    modifier = Modifier.padding(bottom = 12.dp),
+                    fontSize = 14.sp
                 )
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Login Button
             Button(
@@ -191,30 +205,30 @@ fun LoginScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(56.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0000CD)),
-                shape = RoundedCornerShape(4.dp)
+                shape = RoundedCornerShape(8.dp)
             ) {
-                Text("Login", fontSize = 16.sp, color = Color.White)
+                Text("Login", fontSize = 20.sp, color = Color.White, fontWeight = FontWeight.Bold)
             }
 
             // Register Link
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp),
+                    .padding(vertical = 20.dp),
                 horizontalArrangement = Arrangement.Center
             ) {
                 Text(
                     text = "Don't have an account? ",
                     color = Color.Gray,
-                    fontSize = 14.sp
+                    fontSize = 16.sp
                 )
                 Text(
                     text = "Register",
                     color = Color(0xFF0000CD),
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
                     modifier = Modifier.clickable {
                         navController.navigate(AppRoutes.REGISTER)
                     }

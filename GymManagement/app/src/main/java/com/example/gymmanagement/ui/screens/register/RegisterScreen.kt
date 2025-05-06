@@ -311,12 +311,12 @@ fun RegisterScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp)
+                    .height(56.dp)
                     .padding(top = 8.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0000CD)),
                 shape = RoundedCornerShape(4.dp)
             ) {
-                Text("Register", fontSize = 16.sp)
+                Text("Register", fontSize = 20.sp)
             }
 
             // --- Login Link ---
@@ -329,13 +329,13 @@ fun RegisterScreen(
                 Text(
                     text = "Already have an account? ",
                     color = Color.Gray,
-                    fontSize = 14.sp
+                    fontSize = 16.sp
                 )
                 Text(
                     text = "Login",
                     color = Color(0xFF0000CD),
                     fontWeight = FontWeight.Medium,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     modifier = Modifier.clickable {
                         navController.navigate(AppRoutes.LOGIN) {
                             popUpTo(AppRoutes.REGISTER) { inclusive = true }
